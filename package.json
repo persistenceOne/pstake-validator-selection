@@ -2,7 +2,7 @@
   "name": "pstake-validator-selection",
   "version": "1.0.0",
   "description": "validator selection for pSTAKE for liquidstaking",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "update-stkatom-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
     "print-test": "node print-test.js",
