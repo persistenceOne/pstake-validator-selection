@@ -1,0 +1,36 @@
+{
+  "name": "pstake-validator-selection",
+  "version": "1.0.0",
+  "description": "validator selection for pSTAKE for liquidstaking",
+  "main": "index.js",
+  "scripts": {
+    "update-stkatom-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
+    "print-test": "node print-test.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/persistenceOne/pstake-validator-selection.git"
+  },
+  "keywords": [
+    "pSTAKE",
+    "validator",
+    "valset"
+  ],
+  "author": "puneet",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/persistenceOne/pstake-validator-selection/issues"
+  },
+  "homepage": "https://github.com/persistenceOne/pstake-validator-selection#readme",
+  "dependencies": {
+    "@cosmjs/crypto": "^0.31.1",
+    "@cosmjs/encoding": "^0.31.1",
+    "@cosmjs/proto-signing": "^0.31.1",
+    "@cosmjs/stargate": "^0.31.1",
+    "@cosmjs/tendermint-rpc": "^0.31.1",
+    "cosmjs-types": "^0.8.0",
+    "dotenv": "^16.0.3",
+    "persistenceonejs": "^2.3.0-rc1"
+  }
+}
