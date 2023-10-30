@@ -6,12 +6,11 @@ import {
 } from "@cosmjs/stargate";
 import {DirectSecp256k1HdWallet, Registry} from "@cosmjs/proto-signing";
 import {defaultRegistryTypes as defaultStargateTypes} from "@cosmjs/stargate/build/signingstargateclient.js";
-import {osmosisProtoRegistry} from "osmojs";
 import {registry as liquidstakeibcRegistry} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/msgs.registry.js";
 import {MNEMONIC} from "./constants.js";
 import {Long} from "cosmjs-types/helpers";
 
-export const CustomRegistry = new Registry([...defaultStargateTypes, ...osmosisProtoRegistry, ...liquidstakeibcRegistry]);
+export const CustomRegistry = new Registry([...defaultStargateTypes, ...liquidstakeibcRegistry]);
 
 export async function RpcClient(rpc) {
     const tendermintClient = await Tendermint34Client.connect(rpc);
