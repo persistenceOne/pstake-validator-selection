@@ -1,0 +1,35 @@
+name: Schedule
+
+on:
+  schedule:
+#    - cron: '55 12 * * *' # post mainnet epoch
+#    - cron: '00 12 * * *' # pre mainnet epoch
+#    - cron: '00 11 * * *' # post testnet epoch
+#    - cron: '0 10 * * *' # pre testnet epoch
+
+jobs:
+  liquidstakeibc:
+    if: github.event.schedule == '55 12 * * *'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 16.x ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run update host-chain validators on testnet
+        run: npm run update-stkatom-valset-weights
+        env:
+          MNEMONIC: ${{ secrets.MNEMONIC }}
+
+
+
