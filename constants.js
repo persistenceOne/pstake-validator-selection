@@ -8,6 +8,58 @@ export const MNEMONIC = process.env.MNEMONIC
 export const ENVIRONMENT = process.env.ENVIRONMENT || ENVS.mainnet
 export const LIQUIDSTAKEIBC_ADMIN = "persistence1ealyadcds02yvsn78he4wntt7tpdqhlhg7y2s6"
 export const LIQUIDSTAKEIBC_ADMIN_TESTNET = "persistence18dsfsljczehwd5yem9qq2jcz56dz3shp48j3zj"
+
+export const pstakeHostValsetConfigs = {
+    cosmos: {
+        valconsPrefix: "cosmosvalcons",
+        denyListVals: [
+            {name: "Binance Node", valAddr: "cosmosvaloper18ruzecmqj9pv8ac0gvkgryuc7u004te9rh7w5s"},
+            {name: "Binance Staking", valAddr: "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"},
+            {name: "Coinbase Cloud", valAddr: "cosmosvaloper1crqm3598z6qmyn2kkcl9dz7uqs4qdqnr6s8jdn"},
+            {name: "Coinbase Custody", valAddr: "cosmosvaloper1c4k24jzduc365kywrsvf5ujz4ya6mwympnc4en"},
+            {name: "Kraken", valAddr: "cosmosvaloper1z8zjv3lntpwxua0rtpvgrcwl0nm0tltgpgs6l7"},
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.15
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.1
+        },
+        blocksMissed: {
+            min: 0,
+            max: 10,
+            weight: 0.1
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        },
+        validatorBond: {
+            min: 0.001,
+            max: 0.2,
+            weight: 0.1
+        }
+    }
+}
 export const chainInfos = {
     persistence: {
         rpc: "https://rpc.core.persistence.one:443",
@@ -18,10 +70,12 @@ export const chainInfos = {
     },
     cosmos: {
         rpc: "https://rpc.cosmos.audit.one:443",
+        // rpc: "https://cosmos-rpc.polkachu.com:443",
         chainID: "cosmoshub-4",
         prefix: "cosmos",
         feeDenom: "uatom",
-        gasPrice: GasPrice.fromString("0.005uatom")
+        gasPrice: GasPrice.fromString("0.005uatom"),
+        pstakeConfig: pstakeHostValsetConfigs.cosmos
     },
 
     // TESTNETS
