@@ -1,21 +1,23 @@
-import {Tendermint34Client} from "@cosmjs/tendermint-rpc";
+import {pubkeyToAddress, Tendermint34Client} from "@cosmjs/tendermint-rpc";
 import {
     createProtobufRpcClient,
     QueryClient,
     SigningStargateClient
 } from "@cosmjs/stargate";
-import {DirectSecp256k1HdWallet, Registry} from "@cosmjs/proto-signing";
+import {anyToSinglePubkey, decodePubkey, DirectSecp256k1HdWallet, Registry} from "@cosmjs/proto-signing";
 import {defaultRegistryTypes as defaultStargateTypes} from "@cosmjs/stargate/build/signingstargateclient.js";
 import {registry as liquidstakeibcRegistry} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/msgs.registry.js";
 import {MNEMONIC} from "./constants.js";
 import {Long} from "cosmjs-types/helpers";
+import {fromBase64, fromBech32, toBech32} from "@cosmjs/encoding";
+import {sha256} from "@cosmjs/crypto";
 
 export const CustomRegistry = new Registry([...defaultStargateTypes, ...liquidstakeibcRegistry]);
 
 export async function RpcClient(rpc) {
     const tendermintClient = await Tendermint34Client.connect(rpc);
     const queryClient = new QueryClient(tendermintClient);
-    return createProtobufRpcClient(queryClient);
+    return [tendermintClient, createProtobufRpcClient(queryClient)];
 }
 
 export async function CreateWallet(address) {
@@ -60,4 +62,18 @@ export async function AllPaginatedQuery(queryFunc, queryArgs, aggregationKey) {
     } while (key.length !== 0);
 
     return totalElements
+}
+
+export function ChangeAddressPrefix(address, prefix) {
+    let decoded = fromBech32(address)
+    return toBech32(prefix, decoded.data)
+}
+
+export function ValidatorPubkeyToBech32(validatorPubKey, prefix) {
+
+    let valConsPubKey = decodePubkey(validatorPubKey)
+    const ed25519PubkeyRaw = fromBase64(valConsPubKey.value);
+    const addressData = sha256(ed25519PubkeyRaw).slice(0, 20);
+
+    return toBech32(prefix, addressData)
 }
