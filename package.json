@@ -4,8 +4,8 @@
   "description": "validator selection for pSTAKE for liquidstaking",
   "type": "module",
   "scripts": {
-    "update-stkatom-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
-    "print-test": "node print-test.js",
+    "update-stkatom-valset-weights": "ts-node --esm ./src/stkatom-update-valset-weights.ts",
+    "print-test": "ts-node --esm src/print-test.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -29,8 +29,11 @@
     "@cosmjs/proto-signing": "^0.31.1",
     "@cosmjs/stargate": "^0.31.1",
     "@cosmjs/tendermint-rpc": "^0.31.1",
+    "@types/node": "^20.8.10",
     "cosmjs-types": "^0.8.0",
     "dotenv": "^16.0.3",
-    "persistenceonejs": "^2.3.0-rc1"
+    "persistenceonejs": "^2.3.0-rc1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
   }
 }

@@ -9,7 +9,7 @@ export const ENVIRONMENT = process.env.ENVIRONMENT || ENVS.mainnet
 export const LIQUIDSTAKEIBC_ADMIN = "persistence1ealyadcds02yvsn78he4wntt7tpdqhlhg7y2s6"
 export const LIQUIDSTAKEIBC_ADMIN_TESTNET = "persistence18dsfsljczehwd5yem9qq2jcz56dz3shp48j3zj"
 
-export const pstakeHostValsetConfigs = {
+export const pstakeHostValsetConfigs:any= {
     cosmos: {
         valconsPrefix: "cosmosvalcons",
         denyListVals: [
@@ -60,7 +60,7 @@ export const pstakeHostValsetConfigs = {
         }
     }
 }
-export const chainInfos = {
+export const chainInfos:any = {
     persistence: {
         rpc: "https://rpc.core.persistence.one:443",
         chainID: "core-1",
@@ -94,7 +94,7 @@ export const chainInfos = {
         gasPrice: GasPrice.fromString("0.005uatom")
     },
 }
-export const addresses = {
+export const addresses:any = {
     liquidStakeIBC: {
         address: "persistence1wmd9kfszmzymug76hjfjrfyghzmts6gcls763g",
         hdPath: stringToPath("m/44'/118'/2'/0/0"),
