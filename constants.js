@@ -18,6 +18,9 @@ export const pstakeHostValsetConfigs = {
             {name: "Coinbase Cloud", valAddr: "cosmosvaloper1crqm3598z6qmyn2kkcl9dz7uqs4qdqnr6s8jdn"},
             {name: "Coinbase Custody", valAddr: "cosmosvaloper1c4k24jzduc365kywrsvf5ujz4ya6mwympnc4en"},
             {name: "Kraken", valAddr: "cosmosvaloper1z8zjv3lntpwxua0rtpvgrcwl0nm0tltgpgs6l7"},
+            {name: "Upbit Staking", valAddr: "cosmosvaloper1x8efhljzvs52u5xa6m7crcwes7v9u0nlwdgw30"},
+            {name: "CoinoneNode", valAddr: "cosmosvaloper1te8nxpc2myjfrhaty0dnzdhs5ahdh5agzuym9v"},
+            {name: "Huobi", valAddr: "cosmosvaloper1kn3wugetjuy4zetlq6wadchfhvu3x740ae6z6x"},
             // {name: "", valAddr: ""},
         ],
         commission: {
