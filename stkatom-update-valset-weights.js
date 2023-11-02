@@ -24,11 +24,7 @@ import {BondStatus, bondStatusToJSON, Description} from "persistenceonejs/cosmos
 import {Decimal} from "@cosmjs/math";
 import {ProposalStatus} from "cosmjs-types/cosmos/gov/v1beta1/gov.js";
 import {fromDuration, fromTimestamp} from "cosmjs-types/helpers.js";
-import {anyToSinglePubkey, decodePubkey, encodePubkey} from "@cosmjs/proto-signing";
-import {isTendermint34Client, pubkeyToAddress} from "@cosmjs/tendermint-rpc";
-import {fromBase64, fromBech32, toBech32} from "@cosmjs/encoding";
-import {sha256} from "@cosmjs/crypto";
-import {longify} from "@cosmjs/stargate/build/queryclient/index.js";
+import * as fs from "fs";
 
 async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, granteePersistenceAddr, AuthzGranterAddr) {
     const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo.rpc)
@@ -113,7 +109,6 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
             continue
         }
         allVals[i].weight = allVals[i].overAllValidatorScore / totalDenom
-        console.log(allVals[i].valoper, allVals[i].validator.description.moniker, allVals[i].overAllValidatorScore, allVals[i].weight)
     }
 
     // Find validators which are not yet part of pstake validators
@@ -165,13 +160,19 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
             allVals[i].weight = 1 - sum
         }
         sum = sum2
-
         kvUpdates.push({
             key: "validator_weight",
             value: `${allVals[i].valoper},${allVals[i].weight}`
         })
     }
-
+    // allow all data to be printed, bigint won't serialize to string
+    for (let i = 0; i < allVals.length; i++) {
+        allVals[i].moniker = allVals[i].validator.description.moniker
+        allVals[i].validator = {}
+        allVals[i].signingInfo = {}
+    }
+    fs.writeFileSync('data.json', JSON.stringify(allVals));
+    console.log("find data.json")
     if (kvUpdates.length === 0) {
         console.log("no kv updates, total kv updates:", kvUpdates.length)
         return
@@ -225,8 +226,9 @@ function FilterOnCommission(validators, commissionConfig, reason = {name: "commi
 
         if (validatorCommission > commissionConfig.max || validatorCommission < commissionConfig.min) {
             validators[i].deny = true
-            let submitReason = reason
-            reason.description = `Required commission between ${commissionConfig.min} and ${commissionConfig.max}, found ${validatorCommission} `
+            let submitReason = {}
+            submitReason.name = reason.name
+            submitReason.description = `Required commission between ${commissionConfig.min} and ${commissionConfig.max}, found ${validatorCommission}`
             validators[i].denyReason.push(submitReason)
         } else {
             //calculate score
@@ -240,12 +242,14 @@ function FilterOnUptime(validators, uptimeConfig, reason = {name: "uptime", desc
     for (let i = 0; i < validators.length; i++) {
         // TODO queryUptime
         //  Remove random
-        let valUptime = 0.89 + Math.random() / 10
+        // let valUptime = 0.89 + Math.random() / 10
+        let valUptime = 0.95
 
         if (valUptime < uptimeConfig.min) {
             validators[i].deny = true
-            let submitReason = reason
-            reason.description = `Required to be greater than ${uptimeConfig.min}, found ${valUptime} `
+            let submitReason = {}
+            submitReason.name = reason.name
+            submitReason.description = `Required to be greater than ${uptimeConfig.min}, found ${valUptime} `
             validators[i].denyReason.push(submitReason)
         } else {
             //calculate score
@@ -306,8 +310,9 @@ async function FilterOnGov(govQueryClient, validators, govConfig, hostChainPrefi
 
         // if (not_in_bounds) {
         //     validators[i].deny = true
-        //     let submitReason = reason
-        //     reason.description = `Required between ${} and ${} , found ${} `
+        //     let submitReason = {}
+        //     submitReason.name = reason.name
+        //     submitReason.description = `Required between ${} and ${} , found ${} `
         //     validators[i].denyReason.push(submitReason)
         // } else {
         //     //calculate score
@@ -330,8 +335,9 @@ function FilterOnVotingPower(validators, votingPowerConfig, reason = {name: "Vot
         let vp = tokens.toFloatApproximation() / sum.toFloatApproximation()
         if (vp < votingPowerConfig.min || vp > votingPowerConfig.max) {
             validators[i].deny = true
-            let submitReason = reason
-            reason.description = `Required between ${votingPowerConfig.min} and ${votingPowerConfig.max} , found ${vp} `
+            let submitReason = {}
+            submitReason.name = reason.name
+            submitReason.description = `Required between ${votingPowerConfig.min} and ${votingPowerConfig.max} , found ${vp} `
             validators[i].denyReason.push(submitReason)
         } else {
             //calculate score
@@ -348,15 +354,15 @@ function FilterOnBlocksMissed(cosmosSlashingClient, validators, blockmissedConfi
                               }) {
 
     for (let i = 0; i < validators.length; i++) {
-        const blocksMissed = Number(validators[i].signingInfo.missedBlocksCounter)
+        let blocksMissed = Number(validators[i].signingInfo.missedBlocksCounter)
         if (blocksMissed > blockmissedConfig.max) {
             validators[i].deny = true
-            let submitReason = reason
-            reason.description = `Required between ${blockmissedConfig.min} and ${blockmissedConfig.max} , found ${blocksMissed} `
+            let submitReason = {}
+            submitReason.name = reason.name
+            submitReason.description = `Required between ${blockmissedConfig.min} and ${blockmissedConfig.max} , found ${blocksMissed} `
             validators[i].denyReason.push(submitReason)
         } else {
             //calculate score
-            console.log(blocksMissed, validators[i].signingInfo, blockmissedConfig.max, blockmissedConfig.max, blockmissedConfig.min)
             validators[i].blocksMissedScore = CalculateScore(blocksMissed, blockmissedConfig.max, blockmissedConfig.max, blockmissedConfig.min)
         }
     }
@@ -368,11 +374,12 @@ function FilterOnTimeActiveSet(validators, timeActiveSetConfig, reason = {
     description: ""
 }) {
     // for (let i = 0; i < validators.length; i++) {
-    //     const startHeight =  Number(validators[i].signingInfo.startHeight)
+    //     let startHeight =  Number(validators[i].signingInfo.startHeight)
     //     if (not_in_bounds) {
     //         validators[i].deny = true
-    //         let submitReason = reason
-    //         reason.description = `Required between ${} and ${} , found ${} `
+    //         let submitReason = {}
+    //         submitReason.name = reason.name
+    //         submitReason.description = `Required between ${} and ${} , found ${} `
     //         validators[i].denyReason.push(submitReason)
     //     } else {
     //         //calculate score
@@ -388,11 +395,12 @@ async function FilterOnSlashingEvents(cosmosTMClient, validators, slashingConfig
 }) {
     let blockHeightBeforeNDays = await BlockNDaysAgo(cosmosTMClient, slashingConfig.lastNDays)
     for (let i = 0; i < validators.length; i++) {
-        const startHeight = Number(validators[i].signingInfo.startHeight)
+        let startHeight = Number(validators[i].signingInfo.startHeight)
         if (startHeight > blockHeightBeforeNDays) {
             validators[i].deny = true
-            let submitReason = reason
-            reason.description = `Required greater than ${blockHeightBeforeNDays} , found ${startHeight} `
+            let submitReason = {}
+            submitReason.name = reason.name
+            submitReason.description = `Required greater than ${blockHeightBeforeNDays} , found ${startHeight} `
             validators[i].denyReason.push(submitReason)
         }
     }
@@ -422,8 +430,9 @@ async function FilterOnValidatorBond(stakingClient, validators, validatorBondCon
 
         if (valLSMCapacity < validatorBondConfig.min || valLSMCapacity > validatorBondConfig.max) {
             validators[i].deny = true
-            let submitReason = reason
-            reason.description = `Required between ${validatorBondConfig.min} and ${validatorBondConfig.max} , found ${valLSMCapacity} `
+            let submitReason = {}
+            submitReason.name = reason.name
+            submitReason.description = `Required between ${validatorBondConfig.min} and ${validatorBondConfig.max} , found ${valLSMCapacity} `
             validators[i].denyReason.push(submitReason)
         } else {
             //calculate score
@@ -439,13 +448,13 @@ function CalculateScore(val, revOptimal, max, min, normalizationFactor = 100) {
 
 function CalculateValidatorFinalScore(validator, config, lsmFlag) {
 
-    console.log("-----", validator.valoper)
-    console.log(validator.commissionScore, config.commission.weight)
-    console.log(validator.uptimeScore, config.uptime.weight)
-    console.log(validator.govScore, config.gov.weight)
-    console.log(validator.votingPowerScore, config.votingPower.weight)
-    console.log(validator.blocksMissedScore, config.blocksMissed.weight)
-    console.log(validator.validatorBondScore, config.validatorBond.weight)
+    // console.log("-----", validator.valoper)
+    // console.log(validator.commissionScore, config.commission.weight)
+    // console.log(validator.uptimeScore, config.uptime.weight)
+    // console.log(validator.govScore, config.gov.weight)
+    // console.log(validator.votingPowerScore, config.votingPower.weight)
+    // console.log(validator.blocksMissedScore, config.blocksMissed.weight)
+    // console.log(validator.validatorBondScore, config.validatorBond.weight)
     let numerator = (validator.commissionScore * config.commission.weight) +
         (validator.uptimeScore * config.uptime.weight) +
         (validator.govScore * config.gov.weight) +
@@ -475,7 +484,7 @@ async function UpdateSigningInfosToValidators(cosmosSlashingClient, validators, 
         let found = false
         let validatorConsAddr = ValidatorPubkeyToBech32(validators[i].validator.consensusPubkey, valconsPrefix)
         for (let j = 0; j < infos.length; j++) {
-            const signingInfo = infos[j]
+            let signingInfo = infos[j]
             if (signingInfo.address === "") {
                 continue
             }
@@ -499,16 +508,16 @@ async function UpdateSigningInfosToValidators(cosmosSlashingClient, validators, 
 // Not the most accurate, might be even less during upgrades
 async function BlockNDaysAgo(queryClient, N) {
     const blockNow = await queryClient.block()
-    let factor = 10000
+    const factor = 10000
     const blockOld = await queryClient.block(Number(blockNow.block.header.height) - factor)
 
-    let timeNow = new Date(blockNow.block.header.time)
-    let timeFactorAgo = new Date(blockOld.block.header.time)
+    const timeNow = new Date(blockNow.block.header.time)
+    const timeFactorAgo = new Date(blockOld.block.header.time)
 
     const avgBlockTime = (timeNow.getTime() - timeFactorAgo.getTime()) / factor
 
-    let timeDelta = new Date().setTime(N * 24 * 60 * 60 * 1000) // days to milliseconds
-    let blockNAgo = Number(blockNow.block.header.height) - (timeDelta / avgBlockTime)
+    const timeDelta = new Date().setTime(N * 24 * 60 * 60 * 1000) // days to milliseconds
+    const blockNAgo = Number(blockNow.block.header.height) - (timeDelta / avgBlockTime)
 
     return +blockNAgo.toFixed(0)
 }
