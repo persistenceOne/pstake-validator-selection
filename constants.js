@@ -46,8 +46,7 @@ export const pstakeHostValsetConfigs = {
         },
         blocksMissed: {
             min: 0,
-            max: 10,
-            weight: 0.1
+            max: 9500,
         },
         timeInActiveSet: {
             lastNDays: 180,

@@ -54,7 +54,6 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
             uptimeScore: 0,
             govScore: 0,
             votingPowerScore: 0,
-            blocksMissedScore: 0,
             validatorBondScore: 0,
             overAllValidatorScore: 0,
             weight: 0,
@@ -361,9 +360,6 @@ function FilterOnBlocksMissed(cosmosSlashingClient, validators, blockmissedConfi
             submitReason.name = reason.name
             submitReason.description = `Required between ${blockmissedConfig.min} and ${blockmissedConfig.max} , found ${blocksMissed} `
             validators[i].denyReason.push(submitReason)
-        } else {
-            //calculate score
-            validators[i].blocksMissedScore = CalculateScore(blocksMissed, blockmissedConfig.max, blockmissedConfig.max, blockmissedConfig.min)
         }
     }
     return validators
@@ -453,21 +449,18 @@ function CalculateValidatorFinalScore(validator, config, lsmFlag) {
     // console.log(validator.uptimeScore, config.uptime.weight)
     // console.log(validator.govScore, config.gov.weight)
     // console.log(validator.votingPowerScore, config.votingPower.weight)
-    // console.log(validator.blocksMissedScore, config.blocksMissed.weight)
     // console.log(validator.validatorBondScore, config.validatorBond.weight)
     let numerator = (validator.commissionScore * config.commission.weight) +
         (validator.uptimeScore * config.uptime.weight) +
         (validator.govScore * config.gov.weight) +
-        (validator.votingPowerScore * config.votingPower.weight) +
-        (validator.blocksMissedScore * config.blocksMissed.weight)
+        (validator.votingPowerScore * config.votingPower.weight)
     if (lsmFlag) {
         numerator = numerator + (validator.validatorBondScore * config.validatorBond.weight)
     }
     let denominator = config.commission.weight +
         config.uptime.weight +
         config.gov.weight +
-        config.votingPower.weight +
-        config.blocksMissed.weight
+        config.votingPower.weight
     if (lsmFlag) {
         denominator = denominator + config.validatorBond.weight
     }
