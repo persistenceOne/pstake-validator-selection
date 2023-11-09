@@ -31,13 +31,15 @@ export const pstakeHostValsetConfigs = {
         uptime: {
             min: 0.95,
             max: 1,
-            weight: 0.15
+            weight: 0.15,
+            blocksWindow: 300000, //TODO reset to 10000
         },
         gov: {
             lastNDays: 180,
             min: 0.6,
             max: 1,
-            weight: 0.4
+            weight: 0.4,
+            maxTxPage:1,
         },
         votingPower: {
             min: 0.0005,
