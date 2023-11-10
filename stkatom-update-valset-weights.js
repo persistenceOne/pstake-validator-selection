@@ -1,23 +1,33 @@
 import {QueryClientImpl as PstakeQuery} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/query.js"
 import {QueryClientImpl as StakingQuery} from "persistenceonejs/cosmos/staking/v1beta1/query.js"
-import {QueryClientImpl as SlashingQuery} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
+import {
+    QueryClientImpl as SlashingQuery,
+    QuerySigningInfoRequest,
+    QuerySigningInfoResponse,
+} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
 import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1beta1/query.js"
 import {
     AllPaginatedQuery,
     ChangeAddressPrefix,
     CreateSigningClientFromAddress,
+    CustomRegistry,
+    parseJson,
     RpcClient,
+    stringifyJson,
+    txSearchParams,
     ValidatorPubkeyToBech32
 } from "./helper.js";
 import {
     addresses,
     chainInfos,
-    ENVIRONMENT,
-    ENVS,
+    FN,
+    FNS,
+    HOST_CHAIN,
+    HOST_CHAINS,
     LIQUIDSTAKEIBC_ADMIN,
     LIQUIDSTAKEIBC_ADMIN_TESTNET
 } from "./constants.js";
-import {assertIsDeliverTxSuccess, decodeCosmosSdkDecFromProto} from "@cosmjs/stargate";
+import {assertIsDeliverTxSuccess, decodeCosmosSdkDecFromProto, QueryClient} from "@cosmjs/stargate";
 import {MsgExec} from "cosmjs-types/cosmos/authz/v1beta1/tx.js";
 import {MsgUpdateHostChain} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/msgs.js";
 import {BondStatus, bondStatusToJSON, Description} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
@@ -25,8 +35,9 @@ import {Decimal} from "@cosmjs/math";
 import {ProposalStatus} from "cosmjs-types/cosmos/gov/v1beta1/gov.js";
 import {fromDuration, fromTimestamp} from "cosmjs-types/helpers.js";
 import * as fs from "fs";
+import * as proto from "@cosmjs/proto-signing";
 
-async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, granteePersistenceAddr, AuthzGranterAddr) {
+async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo.rpc)
     const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
     let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
@@ -38,8 +49,6 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
 
     // query all bonded vals
     let allValsBonded = await AllPaginatedQuery(cosmosStakingClient.Validators, {status: bondStatusToJSON(BondStatus.BOND_STATUS_BONDED)}, "validators")
-    console.log("all bonded vals in this iteration")
-    // console.dir(allValsBonded, {'maxArrayLength': null})
 
     // put it into struct that has all info
     let allVals = []
@@ -48,6 +57,7 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
             valoper: validator.operatorAddress,
             validator: validator,
             signingInfo: {},
+            proposalsVoted: [],
             deny: false,
             denyReason: [],
             commissionScore: 0,
@@ -60,42 +70,54 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
         }
         allVals.push(valmap)
     }
+    console.log("update all validators")
+
     allVals = await UpdateSigningInfosToValidators(cosmosSlashingClient, allVals, cosmosChainInfo.pstakeConfig.valconsPrefix)
+    console.log("update validator-infos")
 
     // Reject vals based on deny list
     allVals = FilterDenyList(allVals, cosmosChainInfo.pstakeConfig.denyListVals)
+    console.log("filtered denylist")
 
     // reject/filter on commission, calculate scores
     allVals = FilterOnCommission(allVals, cosmosChainInfo.pstakeConfig.commission)
-
-    // reject/filter on uptime, calculate scores
-    allVals = FilterOnUptime(allVals, cosmosChainInfo.pstakeConfig.uptime)
-
-    // reject/filter on Gov in last N days, calculate scores
-    allVals = await FilterOnGov(cosmosGovClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+    console.log("filtered commission")
 
     // reject/filter on voting power, calculate scores
     allVals = FilterOnVotingPower(allVals, cosmosChainInfo.pstakeConfig.votingPower)
+    console.log("filtered voting power")
 
     // reject/filter on blocks missed in signed_blocks_window
     allVals = FilterOnBlocksMissed(cosmosSlashingClient, allVals, cosmosChainInfo.pstakeConfig.blocksMissed)
+    console.log("filtered on blocks missed")
 
     // reject/filter time in active set, calculate scores
-    allVals = await FilterOnTimeActiveSet(allVals, cosmosChainInfo.pstakeConfig.timeInActiveSet)
+    allVals = await FilterOnTimeActiveSet(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.timeInActiveSet)
+    console.log("filtered on time in active set")
 
     // reject/ filter on slashing events, calculate scores
     allVals = await FilterOnSlashingEvents(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.slashingEvents)
+    console.log("filtered on slashing events")
+
+    // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up
+    allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+    console.log("filtered on gov")
+
+    // reject/filter on uptime, calculate scores, this might fail if rpc gives up
+    allVals = await FilterOnUptime(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.uptime, cosmosChainInfo.pstakeConfig.valconsPrefix)
+    console.log("filtered on uptime")
 
     // reject/ filter on validator bond, calculate scores
     if (hostChain.hostChain.flags.lsm === true) {
         allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
+        console.log("filtered on validators bond")
     }
-    // console.dir(allVals, {'maxArrayLength': null})
 
     for (let i = 0; i < allVals.length; i++) {
         let valScore = CalculateValidatorFinalScore(allVals[i], cosmosChainInfo.pstakeConfig, hostChain.hostChain.flags.lsm)
         allVals[i].overAllValidatorScore = valScore
     }
+
     let totalDenom = 0
     for (let i = 0; i < allVals.length; i++) {
         if (allVals[i].deny === true) {
@@ -109,6 +131,17 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
         }
         allVals[i].weight = allVals[i].overAllValidatorScore / totalDenom
     }
+
+    fs.writeFileSync('data.json', stringifyJson(allVals));
+    return
+}
+
+async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, granteePersistenceAddr, AuthzGranterAddr) {
+    const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo.rpc)
+    const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
+    let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
+
+    let allVals = parseJson(fs.readFileSync("data.json"))
 
     // Find validators which are not yet part of pstake validators
     let add_vals = []
@@ -131,8 +164,7 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
     // add kv updates to add_validators
     for (let i = 0; i < add_vals.length; i++) {
         kvUpdates.push({
-            key: "add_validator",
-            value: {
+            key: "add_validator", value: {
                 operator_address: add_vals[i],
                 status: "BOND_STATUS_UNSPECIFIED",
                 weight: "0",
@@ -141,8 +173,7 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
             }
         })
         kvUpdates.push({
-            key: "validator_update",
-            value: add_vals[i]
+            key: "validator_update", value: add_vals[i]
         })
     }
 
@@ -160,18 +191,10 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
         }
         sum = sum2
         kvUpdates.push({
-            key: "validator_weight",
-            value: `${allVals[i].valoper},${allVals[i].weight}`
+            key: "validator_weight", value: `${allVals[i].valoper},${allVals[i].weight}`
         })
     }
-    // allow all data to be printed, bigint won't serialize to string
-    for (let i = 0; i < allVals.length; i++) {
-        allVals[i].moniker = allVals[i].validator.description.moniker
-        allVals[i].validator = {}
-        allVals[i].signingInfo = {}
-    }
-    fs.writeFileSync('data.json', JSON.stringify(allVals));
-    console.log("find data.json")
+
     if (kvUpdates.length === 0) {
         console.log("no kv updates, total kv updates:", kvUpdates.length)
         return
@@ -179,31 +202,25 @@ async function UpdateHostChainValSet(persistenceChainInfo, cosmosChainInfo, gran
         console.log("total kv updates:", kvUpdates.length)
     }
     const msgUpdateHostChain = {
-        typeUrl: "/pstake.liquidstakeibc.v1beta1.MsgUpdateHostChain",
-        value: MsgUpdateHostChain.fromPartial({
-            authority: AuthzGranterAddr,
-            chainId: cosmosChainInfo.chainID,
-            updates: kvUpdates
+        typeUrl: "/pstake.liquidstakeibc.v1beta1.MsgUpdateHostChain", value: MsgUpdateHostChain.fromPartial({
+            authority: AuthzGranterAddr, chainId: cosmosChainInfo.chainID, updates: kvUpdates
         })
     }
     console.log(JSON.stringify(msgUpdateHostChain))
 
     const msg = {
-        typeUrl: "/cosmos.authz.v1beta1.MsgExec",
-        value: MsgExec.fromPartial({
-            grantee: granteePersistenceAddr.address,
-            msgs: [{
-                typeUrl: msgUpdateHostChain.typeUrl,
-                value: MsgUpdateHostChain.encode(msgUpdateHostChain.value).finish()
+        typeUrl: "/cosmos.authz.v1beta1.MsgExec", value: MsgExec.fromPartial({
+            grantee: granteePersistenceAddr.address, msgs: [{
+                typeUrl: msgUpdateHostChain.typeUrl, value: MsgUpdateHostChain.encode(msgUpdateHostChain.value).finish()
             }]
         })
     }
-    // console.log("msg: ", JSON.stringify(msg))
+    console.log("msg: ", JSON.stringify(msg))
 
-    // const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
-    // const response = await signingPersistenceClient.signAndBroadcast(granteePersistenceAddr.address, [msg], 1.5, "Auto validator update check")
-    // console.log(JSON.stringify(response))
-    // assertIsDeliverTxSuccess(response)
+    const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
+    const response = await signingPersistenceClient.signAndBroadcast(granteePersistenceAddr.address, [msg], 1.5, "Auto validator update check")
+    console.log(JSON.stringify(response))
+    assertIsDeliverTxSuccess(response)
 }
 
 function FilterDenyList(validators, denylist, reason = {name: "denylist", description: "Is part of deny list"}) {
@@ -237,12 +254,22 @@ function FilterOnCommission(validators, commissionConfig, reason = {name: "commi
     return validators
 }
 
-function FilterOnUptime(validators, uptimeConfig, reason = {name: "uptime", description: ""}) {
+async function FilterOnUptime(tmClient, validators, uptimeConfig, valconsPrefix, reason = {
+    name: "uptime",
+    description: ""
+}) {
     for (let i = 0; i < validators.length; i++) {
-        // TODO queryUptime
-        //  Remove random
-        // let valUptime = 0.89 + Math.random() / 10
-        let valUptime = 0.95
+        let [blockAgo, currentBlock] = await BlockNDaysAgo(tmClient, uptimeConfig.lastNDays)
+        let blocksMissed = 0
+        let maxBlocksCounted = 0
+        for (let block = currentBlock; block > blockAgo;) {
+            let uptime = await QuerySigningInfosAtHeight(tmClient, validators[i], valconsPrefix, blockAgo)
+
+            blocksMissed = blocksMissed + Number(uptime.missedBlocksCounter)
+            maxBlocksCounted = maxBlocksCounted + uptimeConfig.blocksWindow
+            block = block - uptimeConfig.blocksWindow
+        }
+        let valUptime = blocksMissed / maxBlocksCounted
 
         if (valUptime < uptimeConfig.min) {
             validators[i].deny = true
@@ -258,14 +285,11 @@ function FilterOnUptime(validators, uptimeConfig, reason = {name: "uptime", desc
     return validators
 }
 
-async function FilterOnGov(govQueryClient, validators, govConfig, hostChainPrefix, reason = {
-    name: "governance participation",
-    description: ""
+async function FilterOnGov(govQueryClient, tmClient, validators, govConfig, hostChainPrefix, reason = {
+    name: "governance participation", description: ""
 }) {
     let proposals = await AllPaginatedQuery(govQueryClient.Proposals, {
-        proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-        voter: "",
-        depositor: ""
+        proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED, voter: "", depositor: ""
     }, "proposals")
     let timeNow = new Date(Date.now())
     let timeDelta = new Date().setTime(govConfig.lastNDays * 24 * 60 * 60 * 1000) // days to milliseconds
@@ -287,37 +311,86 @@ async function FilterOnGov(govQueryClient, validators, govConfig, hostChainPrefi
             maxProposalID = proposals[i].proposalId.toNumber()
         }
     }
-    console.log(minProposalID, maxProposalID, totalCompleteProposals)
 
     // TODO async this
     for (let i = 0; i < validators.length; i++) {
 
-        // if (i === 1 || i === 2) {
-        if (i === 1) {
-            let voterAddr = ChangeAddressPrefix(validators[i].valoper, hostChainPrefix)
+        let voterAddr = ChangeAddressPrefix(validators[i].valoper, hostChainPrefix)
+        let gov_pages = govConfig.maxTxPage
 
-            // votes are deleted once proposal is passed, either need to query events or
+        let tags = [{key: "message.action", value: "/cosmos.gov.v1beta1.MsgVote"}, {
+            key: "message.sender", value: voterAddr
+        },]
+        for (let page = 1; page <= gov_pages; page++) {
+            let results = await tmClient.txSearch(txSearchParams(tags, page, 100))
+            validators[i].proposalsVoted = []
+            for (let transaction of results.txs) {
+                const decodedTransaction = proto.decodeTxRaw(transaction.tx);
+                if (transaction.result.code === 0) {
+                    for (let message of decodedTransaction.body.messages) {
+                        if (message.typeUrl === "/cosmos.gov.v1beta1.MsgVote" || message.typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted") {
+                            const body = CustomRegistry.decode(message);
+                            let proposalID = Number(body.proposalId)
+                            if (minProposalID <= proposalID && proposalID < maxProposalID && !validators[i].proposalsVoted.includes(proposalID)) {
+                                validators[i].proposalsVoted.push(proposalID)
+                            }
+                        }
+                    }
+                }
+            }
+            let authzTags = [{key: "message.action", value: "/cosmos.authz.v1beta1.MsgExec"}, {
+                key: "message.sender", value: voterAddr
+            },]
 
-            let count = 0
-            // for (let valProposal of valProposals) {
-            //     if (valProposal.proposalId.toNumber() >= minProposalID && valProposal.proposalId.toNumber() < maxProposalID) {
-            //         count++
-            //     }
-            // }
-            // console.log(validators[i].validator.description.moniker, count)
+            let authzResults = await tmClient.txSearch(txSearchParams(authzTags, page, 100))
+            for (let transaction of authzResults.txs) {
+                const decodedTransaction = proto.decodeTxRaw(transaction.tx);
+                if (transaction.result.code === 0) {
+                    for (let message of decodedTransaction.body.messages) {
+                        if (message.typeUrl === "/cosmos.authz.v1beta1.MsgExec") {
+                            const body = CustomRegistry.decode(message);
+                            for (let authzmsg of body.msgs) {
+                                // shall not go recursive, no ica msgVotes allowed
+                                if (authzmsg.typeUrl === "/cosmos.gov.v1beta1.MsgVote" || authzmsg.typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted") {
+                                    const msgBody = CustomRegistry.decode(authzmsg);
+                                    let proposalID = Number(msgBody.proposalId)
+                                    if (minProposalID <= proposalID && proposalID < maxProposalID && !validators[i].proposalsVoted.includes(proposalID)) {
+                                        validators[i].proposalsVoted.push(proposalID)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-
-        // if (not_in_bounds) {
-        //     validators[i].deny = true
-        //     let submitReason = {}
-        //     submitReason.name = reason.name
-        //     submitReason.description = `Required between ${} and ${} , found ${} `
-        //     validators[i].denyReason.push(submitReason)
-        // } else {
-        //     //calculate score
-        //     validators[i].Score_metric = CalculateScore(validatorCommission, commissionConfig.max, commissionConfig.max, commissionConfig.min)
-        //     handle 0 totalcountproposals case.
-        // }
+    }
+    // ideally should be equal to totalCompleteProposals, but since archival node might not have all data.
+    // we choose max by any validator and take % out of it
+    // let maxVoted = totalCompleteProposals
+    let maxVoted = 0
+    for (let i = 0; i < validators.length; i++) {
+        if (validators[i].proposalsVoted.length > maxVoted) {
+            maxVoted = validators[i].proposalsVoted.length
+        }
+    }
+    for (let i = 0; i < validators.length; i++) {
+        let percentVoted = validators[i].proposalsVoted.length / maxVoted
+        if (maxVoted === 0) {
+            // handle 0 totalcountproposals case, if no gov proposals
+            validators[i].Score_metric = 100
+        } else {
+            if (percentVoted < govConfig.min) {
+                validators[i].deny = true
+                let submitReason = {}
+                submitReason.name = reason.name
+                submitReason.description = `Required between ${govConfig.min} and ${govConfig.max} , found ${percentVoted} `
+                validators[i].denyReason.push(submitReason)
+            } else {
+                //calculate score
+                validators[i].Score_metric = CalculateScore(percentVoted, govConfig.min, govConfig.max, govConfig.min)
+            }
+        }
     }
     return validators
 }
@@ -346,11 +419,9 @@ function FilterOnVotingPower(validators, votingPowerConfig, reason = {name: "Vot
     return validators
 }
 
-function FilterOnBlocksMissed(cosmosSlashingClient, validators, blockmissedConfig,
-                              reason = {
-                                  name: "blocks missed in sign_window",
-                                  description: ""
-                              }) {
+function FilterOnBlocksMissed(cosmosSlashingClient, validators, blockmissedConfig, reason = {
+    name: "blocks missed in sign_window", description: ""
+}) {
 
     for (let i = 0; i < validators.length; i++) {
         let blocksMissed = Number(validators[i].signingInfo.missedBlocksCounter)
@@ -365,34 +436,32 @@ function FilterOnBlocksMissed(cosmosSlashingClient, validators, blockmissedConfi
     return validators
 }
 
-function FilterOnTimeActiveSet(validators, timeActiveSetConfig, reason = {
-    name: "Time in ActiveSet",
-    description: ""
+// same as slashing.
+async function FilterOnTimeActiveSet(cosmosTMClient, validators, timeActiveSetConfig, reason = {
+    name: "Time in ActiveSet", description: ""
 }) {
-    // for (let i = 0; i < validators.length; i++) {
-    //     let startHeight =  Number(validators[i].signingInfo.startHeight)
-    //     if (not_in_bounds) {
-    //         validators[i].deny = true
-    //         let submitReason = {}
-    //         submitReason.name = reason.name
-    //         submitReason.description = `Required between ${} and ${} , found ${} `
-    //         validators[i].denyReason.push(submitReason)
-    //     } else {
-    //         //calculate score
-    //         validators[i].Score_metric = CalculateScore(validatorCommission, commissionConfig.max, commissionConfig.max, commissionConfig.min)
-    //     }
-    // }
+    let [blockHeightBeforeNDays, currentBlock] = await BlockNDaysAgo(cosmosTMClient, timeActiveSetConfig.lastNDays)
+    for (let i = 0; i < validators.length; i++) {
+        let startHeight = Number(validators[i].signingInfo.startHeight)
+        if (startHeight > blockHeightBeforeNDays || validators[i].validator.jailed === true) {
+            validators[i].deny = true
+            let submitReason = {}
+            submitReason.name = reason.name
+            submitReason.description = `Required greater than ${blockHeightBeforeNDays} , found ${startHeight} `
+            validators[i].denyReason.push(submitReason)
+        }
+    }
     return validators
 }
 
+// only finds if validator has been slashed in past N days, not the number of slashes.
 async function FilterOnSlashingEvents(cosmosTMClient, validators, slashingConfig, reason = {
-    name: "Slashing",
-    description: ""
+    name: "Slashing", description: ""
 }) {
-    let blockHeightBeforeNDays = await BlockNDaysAgo(cosmosTMClient, slashingConfig.lastNDays)
+    let [blockHeightBeforeNDays, currentBlock] = await BlockNDaysAgo(cosmosTMClient, slashingConfig.lastNDays)
     for (let i = 0; i < validators.length; i++) {
         let startHeight = Number(validators[i].signingInfo.startHeight)
-        if (startHeight > blockHeightBeforeNDays) {
+        if (startHeight > blockHeightBeforeNDays || validators[i].validator.jailed === true) {
             validators[i].deny = true
             let submitReason = {}
             submitReason.name = reason.name
@@ -404,8 +473,7 @@ async function FilterOnSlashingEvents(cosmosTMClient, validators, slashingConfig
 }
 
 async function FilterOnValidatorBond(stakingClient, validators, validatorBondConfig, reason = {
-    name: "validator bond",
-    description: ""
+    name: "validator bond", description: ""
 }) {
     let stakingParams = await stakingClient.Params({})
     let globalLSMCap = decodeCosmosSdkDecFromProto(stakingParams.params.globalLiquidStakingCap)
@@ -444,23 +512,11 @@ function CalculateScore(val, revOptimal, max, min, normalizationFactor = 100) {
 
 function CalculateValidatorFinalScore(validator, config, lsmFlag) {
 
-    // console.log("-----", validator.valoper)
-    // console.log(validator.commissionScore, config.commission.weight)
-    // console.log(validator.uptimeScore, config.uptime.weight)
-    // console.log(validator.govScore, config.gov.weight)
-    // console.log(validator.votingPowerScore, config.votingPower.weight)
-    // console.log(validator.validatorBondScore, config.validatorBond.weight)
-    let numerator = (validator.commissionScore * config.commission.weight) +
-        (validator.uptimeScore * config.uptime.weight) +
-        (validator.govScore * config.gov.weight) +
-        (validator.votingPowerScore * config.votingPower.weight)
+    let numerator = (validator.commissionScore * config.commission.weight) + (validator.uptimeScore * config.uptime.weight) + (validator.govScore * config.gov.weight) + (validator.votingPowerScore * config.votingPower.weight)
     if (lsmFlag) {
         numerator = numerator + (validator.validatorBondScore * config.validatorBond.weight)
     }
-    let denominator = config.commission.weight +
-        config.uptime.weight +
-        config.gov.weight +
-        config.votingPower.weight
+    let denominator = config.commission.weight + config.uptime.weight + config.gov.weight + config.votingPower.weight
     if (lsmFlag) {
         denominator = denominator + config.validatorBond.weight
     }
@@ -498,6 +554,17 @@ async function UpdateSigningInfosToValidators(cosmosSlashingClient, validators, 
     return validators
 }
 
+async function QuerySigningInfosAtHeight(tmQueryClient, validator, valconsPrefix, height) {
+    let validatorConsAddr = ValidatorPubkeyToBech32(validator.validator.consensusPubkey, valconsPrefix)
+
+    const queryClient = await QueryClient.withExtensions(tmQueryClient)
+    const requestData = QuerySigningInfoRequest.encode({consAddress: validatorConsAddr}).finish();
+    const data = await queryClient.queryAbci(`/cosmos.slashing.v1beta1.Query/SigningInfo`, requestData);
+    const response = QuerySigningInfoResponse.decode(data.value);
+    return response
+}
+
+
 // Not the most accurate, might be even less during upgrades
 async function BlockNDaysAgo(queryClient, N) {
     const blockNow = await queryClient.block()
@@ -512,21 +579,24 @@ async function BlockNDaysAgo(queryClient, N) {
     const timeDelta = new Date().setTime(N * 24 * 60 * 60 * 1000) // days to milliseconds
     const blockNAgo = Number(blockNow.block.header.height) - (timeDelta / avgBlockTime)
 
-    return +blockNAgo.toFixed(0)
+    return [+blockNAgo.toFixed(0), blockNow.block.header.height]
 }
 
-function UpdateValsetWeights() {
-    if (ENVIRONMENT === ENVS.testnet) {
-        UpdateHostChainValSet(chainInfos.persistenceTestnet,
-            chainInfos.cosmosTestnet,
-            addresses.liquidStakeIBCTestnet,
-            LIQUIDSTAKEIBC_ADMIN_TESTNET).then(_ => console.log("Success")).catch(e => console.log(e))
-    } else {
-        UpdateHostChainValSet(chainInfos.persistence,
-            chainInfos.cosmos,
-            addresses.liquidStakeIBC,
-            LIQUIDSTAKEIBC_ADMIN).then(_ => console.log("Success")).catch(e => console.log(e))
+async function UpdateValsetWeights() {
+    if (HOST_CHAIN === HOST_CHAINS.cosmosTestnet) {
+        return await Fn(chainInfos.persistenceTestnet, chainInfos.cosmosTestnet, addresses.liquidStakeIBCTestnet, LIQUIDSTAKEIBC_ADMIN_TESTNET)
+    } else if (HOST_CHAIN === HOST_CHAINS.cosmos) {
+        return await Fn(chainInfos.persistence, chainInfos.cosmos, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
+    }
+    // add more chain running on tm v34.
+}
+
+async function Fn(controllerChainInfo, hostChainInfo, txnSenderAddress, adminAddress) {
+    if (FN === FNS.getData) {
+        return await GetHostChainValSetData(controllerChainInfo, hostChainInfo)
+    } else if (FN === FNS.doTx) {
+        return await TxUpdateValsetWeights(controllerChainInfo, hostChainInfo, txnSenderAddress, adminAddress)
     }
 }
 
-UpdateValsetWeights()
+UpdateValsetWeights().then(_ => console.log("Success")).catch(e => console.log(e))

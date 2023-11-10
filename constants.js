@@ -3,9 +3,15 @@ import {stringToPath} from "@cosmjs/crypto/build/slip10.js";
 import {GasPrice} from "@cosmjs/stargate";
 
 dotenv.config()
-export const ENVS = {testnet: "TESTNET", mainnet: "MAINNET"}
+export const FNS = {getData: "GET_DATA", doTx: "DO_TX"}
+export const HOST_CHAINS = {
+    cosmos: "cosmos",
+    osmosis: "osmosis",
+    cosmosTestnet: "cosmosTestnet"
+}
 export const MNEMONIC = process.env.MNEMONIC
-export const ENVIRONMENT = process.env.ENVIRONMENT || ENVS.mainnet
+export const FN = process.env.FN
+export const HOST_CHAIN = process.env.HOST_CHAIN
 export const LIQUIDSTAKEIBC_ADMIN = "persistence1ealyadcds02yvsn78he4wntt7tpdqhlhg7y2s6"
 export const LIQUIDSTAKEIBC_ADMIN_TESTNET = "persistence18dsfsljczehwd5yem9qq2jcz56dz3shp48j3zj"
 
@@ -32,14 +38,15 @@ export const pstakeHostValsetConfigs = {
             min: 0.95,
             max: 1,
             weight: 0.15,
-            blocksWindow: 300000, //TODO reset to 10000
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
         },
         gov: {
             lastNDays: 180,
             min: 0.6,
             max: 1,
             weight: 0.4,
-            maxTxPage:1,
+            maxTxPage: 1,
         },
         votingPower: {
             min: 0.0005,
