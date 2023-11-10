@@ -25,7 +25,7 @@ import {
     HOST_CHAIN,
     HOST_CHAINS,
     LIQUIDSTAKEIBC_ADMIN,
-    LIQUIDSTAKEIBC_ADMIN_TESTNET
+    LIQUIDSTAKEIBC_ADMIN_TESTNET, pstakeHostValsetConfigs
 } from "./constants.js";
 import {assertIsDeliverTxSuccess, decodeCosmosSdkDecFromProto, QueryClient} from "@cosmjs/stargate";
 import {MsgExec} from "cosmjs-types/cosmos/authz/v1beta1/tx.js";
@@ -123,6 +123,16 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     }
     console.log("filtered on slashing events")
 
+    // reject/ filter on validator bond, calculate scores
+    if (hostChain.hostChain.flags.lsm === true) {
+        try {
+            allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
+        } catch (e) {
+            throw e
+        }
+        console.log("filtered on validators bond")
+    }
+
     // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up ( approx 180 requests )
     try {
         allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
@@ -141,16 +151,6 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
             allVals[i].uptimeScore = 100
         }
         console.log("Failed to filter on uptime, so awarded 100%")
-    }
-
-    // reject/ filter on validator bond, calculate scores
-    if (hostChain.hostChain.flags.lsm === true) {
-        try {
-            allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
-        } catch (e) {
-            throw e
-        }
-        console.log("filtered on validators bond")
     }
 
     for (let i = 0; i < allVals.length; i++) {
@@ -172,7 +172,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
         allVals[i].weight = allVals[i].overAllValidatorScore / totalDenom
     }
 
-    fs.writeFileSync('data.json', stringifyJson(allVals));
+    fs.writeFileSync(cosmosChainInfo.pstakeConfig.filename, stringifyJson(allVals));
     return
 }
 
@@ -181,7 +181,7 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
     const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
     let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
 
-    let allVals = parseJson(fs.readFileSync("data.json"))
+    let allVals = parseJson(fs.readFileSync(cosmosChainInfo.pstakeConfig.filename))
 
     // Find validators which are not yet part of pstake validators
     let add_vals = []

@@ -17,6 +17,7 @@ export const LIQUIDSTAKEIBC_ADMIN_TESTNET = "persistence18dsfsljczehwd5yem9qq2jc
 
 export const pstakeHostValsetConfigs = {
     cosmos: {
+        filename: "cosmosdata.json",
         valconsPrefix: "cosmosvalcons",
         denyListVals: [
             {name: "Binance Node", valAddr: "cosmosvaloper18ruzecmqj9pv8ac0gvkgryuc7u004te9rh7w5s"},
