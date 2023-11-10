@@ -76,40 +76,80 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     console.log("update validator-infos")
 
     // Reject vals based on deny list
-    allVals = FilterDenyList(allVals, cosmosChainInfo.pstakeConfig.denyListVals)
+    try {
+        allVals = FilterDenyList(allVals, cosmosChainInfo.pstakeConfig.denyListVals)
+    } catch (e) {
+        throw e
+    }
     console.log("filtered denylist")
 
     // reject/filter on commission, calculate scores
-    allVals = FilterOnCommission(allVals, cosmosChainInfo.pstakeConfig.commission)
+    try {
+        allVals = FilterOnCommission(allVals, cosmosChainInfo.pstakeConfig.commission)
+    } catch (e) {
+        throw e
+    }
     console.log("filtered commission")
 
     // reject/filter on voting power, calculate scores
-    allVals = FilterOnVotingPower(allVals, cosmosChainInfo.pstakeConfig.votingPower)
+    try {
+        allVals = FilterOnVotingPower(allVals, cosmosChainInfo.pstakeConfig.votingPower)
+    } catch (e) {
+        throw e
+    }
     console.log("filtered voting power")
 
     // reject/filter on blocks missed in signed_blocks_window
-    allVals = FilterOnBlocksMissed(cosmosSlashingClient, allVals, cosmosChainInfo.pstakeConfig.blocksMissed)
+    try {
+        allVals = FilterOnBlocksMissed(cosmosSlashingClient, allVals, cosmosChainInfo.pstakeConfig.blocksMissed)
+    } catch (e) {
+        throw e
+    }
     console.log("filtered on blocks missed")
 
     // reject/filter time in active set, calculate scores
-    allVals = await FilterOnTimeActiveSet(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.timeInActiveSet)
+    try {
+        allVals = await FilterOnTimeActiveSet(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.timeInActiveSet)
+    } catch (e) {
+        throw e
+    }
     console.log("filtered on time in active set")
 
     // reject/ filter on slashing events, calculate scores
-    allVals = await FilterOnSlashingEvents(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.slashingEvents)
+    try {
+        allVals = await FilterOnSlashingEvents(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.slashingEvents)
+    } catch (e) {
+        throw e
+    }
     console.log("filtered on slashing events")
 
-    // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up
-    allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+    // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up ( approx 180 requests )
+    try {
+        allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+    } catch (e) {
+        throw e
+    }
     console.log("filtered on gov")
 
-    // reject/filter on uptime, calculate scores, this might fail if rpc gives up
-    allVals = await FilterOnUptime(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.uptime, cosmosChainInfo.pstakeConfig.valconsPrefix)
-    console.log("filtered on uptime")
+    // reject/filter on uptime, calculate scores, this might fail if rpc gives up (approx 180 * Ndays requests )
+    try {
+        allVals = await FilterOnUptime(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.uptime, cosmosChainInfo.pstakeConfig.valconsPrefix)
+        console.log("filtered on uptime")
+    } catch (e) {
+        // most likely to fail, just score them all 100 if this is the case.
+        for (let i = 0; i < allVals.length; i++) {
+            allVals[i].uptimeScore = 100
+        }
+        console.log("Failed to filter on uptime, so awarded 100%")
+    }
 
     // reject/ filter on validator bond, calculate scores
     if (hostChain.hostChain.flags.lsm === true) {
-        allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
+        try {
+            allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
+        } catch (e) {
+            throw e
+        }
         console.log("filtered on validators bond")
     }
 
@@ -177,7 +217,7 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
         })
     }
 
-    // add kv updates to set weight
+    // add kv updates to set weight, add to check if sum of weights is 1.
     let sum = 0
     for (let i = 0; i < allVals.length; i++) {
         if (allVals[i].deny === true) {
