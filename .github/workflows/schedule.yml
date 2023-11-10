@@ -3,13 +3,15 @@ name: Schedule
 on:
   schedule:
     - cron: '55 12 * * *' # post mainnet epoch
-#    - cron: '00 12 * * *' # pre mainnet epoch
-#    - cron: '00 11 * * *' # post testnet epoch
-#    - cron: '0 10 * * *' # pre testnet epoch
+    #    - cron: '00 12 * * *' # pre mainnet epoch
+    #    - cron: '00 11 * * *' # post testnet epoch
+    #    - cron: '0 10 * * *' # pre testnet epoch
+    - cron: '0 */3 * * *' # every 3 hours
 
 jobs:
   liquidstakeibc:
-    if: github.event.schedule == '55 12 * * *'
+    #    if: github.event.schedule == '55 12 * * *'
+    if: github.event.schedule == '0 */3 * * *'
     runs-on: ubuntu-latest
 
     strategy:
