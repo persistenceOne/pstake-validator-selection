@@ -3,9 +3,15 @@ import {stringToPath} from "@cosmjs/crypto/build/slip10.js";
 import {GasPrice} from "@cosmjs/stargate";
 
 dotenv.config()
-export const ENVS = {testnet: "TESTNET", mainnet: "MAINNET"}
+export const FNS = {getData: "GET_DATA", doTx: "DO_TX"}
+export const HOST_CHAINS = {
+    cosmos: "cosmos",
+    osmosis: "osmosis",
+    cosmosTestnet: "cosmosTestnet"
+}
 export const MNEMONIC = process.env.MNEMONIC
-export const ENVIRONMENT = process.env.ENVIRONMENT || ENVS.mainnet
+export const FN = process.env.FN
+export const HOST_CHAIN = process.env.HOST_CHAIN
 export const LIQUIDSTAKEIBC_ADMIN = "persistence1ealyadcds02yvsn78he4wntt7tpdqhlhg7y2s6"
 export const LIQUIDSTAKEIBC_ADMIN_TESTNET = "persistence18dsfsljczehwd5yem9qq2jcz56dz3shp48j3zj"
 
@@ -18,6 +24,9 @@ export const pstakeHostValsetConfigs = {
             {name: "Coinbase Cloud", valAddr: "cosmosvaloper1crqm3598z6qmyn2kkcl9dz7uqs4qdqnr6s8jdn"},
             {name: "Coinbase Custody", valAddr: "cosmosvaloper1c4k24jzduc365kywrsvf5ujz4ya6mwympnc4en"},
             {name: "Kraken", valAddr: "cosmosvaloper1z8zjv3lntpwxua0rtpvgrcwl0nm0tltgpgs6l7"},
+            {name: "Upbit Staking", valAddr: "cosmosvaloper1x8efhljzvs52u5xa6m7crcwes7v9u0nlwdgw30"},
+            {name: "CoinoneNode", valAddr: "cosmosvaloper1te8nxpc2myjfrhaty0dnzdhs5ahdh5agzuym9v"},
+            {name: "Huobi", valAddr: "cosmosvaloper1kn3wugetjuy4zetlq6wadchfhvu3x740ae6z6x"},
             // {name: "", valAddr: ""},
         ],
         commission: {
@@ -28,13 +37,16 @@ export const pstakeHostValsetConfigs = {
         uptime: {
             min: 0.95,
             max: 1,
-            weight: 0.15
+            weight: 0.15,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
         },
         gov: {
             lastNDays: 180,
             min: 0.6,
             max: 1,
-            weight: 0.4
+            weight: 0.4,
+            maxTxPage: 1,
         },
         votingPower: {
             min: 0.0005,
@@ -43,8 +55,7 @@ export const pstakeHostValsetConfigs = {
         },
         blocksMissed: {
             min: 0,
-            max: 10,
-            weight: 0.1
+            max: 9500,
         },
         timeInActiveSet: {
             lastNDays: 180,

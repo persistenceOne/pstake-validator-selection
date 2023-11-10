@@ -11,6 +11,7 @@ import {MNEMONIC} from "./constants.js";
 import {Long} from "cosmjs-types/helpers";
 import {fromBase64, fromBech32, toBech32} from "@cosmjs/encoding";
 import {sha256} from "@cosmjs/crypto";
+import {buildQuery} from "@cosmjs/tendermint-rpc/build/tendermint34/requests.js";
 
 export const CustomRegistry = new Registry([...defaultStargateTypes, ...liquidstakeibcRegistry]);
 
@@ -76,4 +77,32 @@ export function ValidatorPubkeyToBech32(validatorPubKey, prefix) {
     const addressData = sha256(ed25519PubkeyRaw).slice(0, 20);
 
     return toBech32(prefix, addressData)
+}
+
+export function txSearchParams(tags, pageNumber, perPage) {
+    // tags = [{key: "message.sender", value: "persistence1xxx"}]
+    return {
+        query: buildQuery({
+            tags: tags,
+        }),
+        page: pageNumber,
+        per_page: perPage,
+        order_by: "desc" //latest first
+    }
+}
+
+export function stringifyJson(data) {
+    return JSON.stringify(data, (key, value) =>
+        typeof value === "bigint" ? value.toString() + "b" : value
+    );
+
+}
+
+export function parseJson(json) {
+    return JSON.parse(json, (key, value) => {
+        if (typeof value === "string" && /^\d+b$/.test(value)) {
+            return BigInt(value.substr(0, value.length - 1));
+        }
+        return value;
+    })
 }
