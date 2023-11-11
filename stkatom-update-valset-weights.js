@@ -418,7 +418,7 @@ async function FilterOnGov(govQueryClient, tmClient, validators, govConfig, host
         let percentVoted = validators[i].proposalsVoted.length / maxVoted
         if (maxVoted === 0) {
             // handle 0 totalcountproposals case, if no gov proposals
-            validators[i].Score_metric = 100
+            validators[i].govScore = 100
         } else {
             if (percentVoted < govConfig.min) {
                 validators[i].deny = true
@@ -428,7 +428,7 @@ async function FilterOnGov(govQueryClient, tmClient, validators, govConfig, host
                 validators[i].denyReason.push(submitReason)
             } else {
                 //calculate score
-                validators[i].Score_metric = CalculateScore(percentVoted, govConfig.min, govConfig.max, govConfig.min)
+                validators[i].govScore = CalculateScore(percentVoted, govConfig.min, govConfig.max, govConfig.min)
             }
         }
     }
