@@ -32,6 +32,11 @@ jobs:
         run: npm run update-stkatom-valset-weights
         env:
           MNEMONIC: ${{ secrets.MNEMONIC }}
+      - name: Run do txn
+        run: npm run tx-update-stkatom-valset-weights
+        env:
+          MNEMONIC: ${{ secrets.MNEMONIC }}
+
 
 
 
