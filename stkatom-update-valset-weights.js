@@ -150,7 +150,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
         for (let i = 0; i < allVals.length; i++) {
             allVals[i].uptimeScore = 100
         }
-        console.log("Failed to filter on uptime, so awarded 100%")
+        console.log("Failed to filter on uptime, so awarded 100%, err:", e)
     }
 
     for (let i = 0; i < allVals.length; i++) {
