@@ -81,7 +81,8 @@ export const chainInfos = {
         gasPrice: GasPrice.fromString("0.005uxprt")
     },
     cosmos: {
-        rpc: "https://rpc.cosmos.audit.one:443",
+        rpc: "https://r-sub_cosmoshub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        // rpc: "https://rpc.cosmos.audit.one:443",
         // rpc: "https://cosmos-rpc.polkachu.com:443",
         chainID: "cosmoshub-4",
         prefix: "cosmos",
