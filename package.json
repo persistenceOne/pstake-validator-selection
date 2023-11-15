@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "update-stkatom-valset-weights": "FN='GET_DATA' HOST_CHAIN='cosmos' NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
+    "tx-update-stkatom-valset-weights": "FN='DO_TX' HOST_CHAIN='cosmos' NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
     "print-test": "node print-test.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
