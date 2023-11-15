@@ -172,7 +172,9 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
         allVals[i].weight = allVals[i].overAllValidatorScore / totalDenom
     }
 
-    fs.writeFileSync(cosmosChainInfo.pstakeConfig.filename, stringifyJson(allVals));
+    const jsonString = stringifyJson(allVals)
+    fs.writeFileSync(cosmosChainInfo.pstakeConfig.filename, jsonString);
+    process.stdout.write(jsonString + "\n")
     return
 }
 
@@ -216,7 +218,12 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
             key: "validator_update", value: add_vals[i]
         })
     }
-
+    // reset weights to zero
+    for (let i = 0; i < hostChain.hostChain.validators.length; i++) {
+        kvUpdates.push({
+            key: "validator_weight", value: `${hostChain.hostChain.validators[i].operatorAddress},0`
+        })
+    }
     // add kv updates to set weight, add to check if sum of weights is 1.
     let sum = 0
     for (let i = 0; i < allVals.length; i++) {
@@ -257,10 +264,10 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
     }
     console.log("msg: ", JSON.stringify(msg))
 
-    const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
-    const response = await signingPersistenceClient.signAndBroadcast(granteePersistenceAddr.address, [msg], 1.5, "Auto validator update check")
-    console.log(JSON.stringify(response))
-    assertIsDeliverTxSuccess(response)
+    // const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
+    // const response = await signingPersistenceClient.signAndBroadcast(granteePersistenceAddr.address, [msg], 1.5, "Auto validator update check")
+    // console.log(JSON.stringify(response))
+    // assertIsDeliverTxSuccess(response)
 }
 
 function FilterDenyList(validators, denylist, reason = {name: "denylist", description: "Is part of deny list"}) {
