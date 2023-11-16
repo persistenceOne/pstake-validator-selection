@@ -9,7 +9,6 @@ import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1beta1/query
 import {
     AllPaginatedQuery,
     ChangeAddressPrefix,
-    CreateSigningClientFromAddress,
     CustomRegistry,
     parseJson,
     RpcClient,
@@ -25,15 +24,15 @@ import {
     HOST_CHAIN,
     HOST_CHAINS,
     LIQUIDSTAKEIBC_ADMIN,
-    LIQUIDSTAKEIBC_ADMIN_TESTNET, pstakeHostValsetConfigs
+    LIQUIDSTAKEIBC_ADMIN_TESTNET
 } from "./constants.js";
-import {assertIsDeliverTxSuccess, decodeCosmosSdkDecFromProto, QueryClient} from "@cosmjs/stargate";
+import {decodeCosmosSdkDecFromProto, QueryClient} from "@cosmjs/stargate";
 import {MsgExec} from "cosmjs-types/cosmos/authz/v1beta1/tx.js";
 import {MsgUpdateHostChain} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/msgs.js";
-import {BondStatus, bondStatusToJSON, Description} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
+import {BondStatus, bondStatusToJSON} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
 import {Decimal} from "@cosmjs/math";
 import {ProposalStatus} from "cosmjs-types/cosmos/gov/v1beta1/gov.js";
-import {fromDuration, fromTimestamp} from "cosmjs-types/helpers.js";
+import {fromTimestamp} from "cosmjs-types/helpers.js";
 import * as fs from "fs";
 import * as proto from "@cosmjs/proto-signing";
 
