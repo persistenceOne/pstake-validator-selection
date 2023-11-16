@@ -70,6 +70,48 @@ export const pstakeHostValsetConfigs = {
             max: 0.2,
             weight: 0.1
         }
+    },
+    osmosis: {
+        filename: "data_osmosis.json",
+        valconsPrefix: "osmovalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.15,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 1,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.1
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        }
     }
 }
 export const chainInfos = {
@@ -89,6 +131,15 @@ export const chainInfos = {
         feeDenom: "uatom",
         gasPrice: GasPrice.fromString("0.005uatom"),
         pstakeConfig: pstakeHostValsetConfigs.cosmos
+    },
+    osmosis: {
+        rpc: "https://r-sub_osmosis--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        // rpc: "https://rpc.osmosis-1.audit.one:443",
+        chainID: "osmosis-4",
+        prefix: "osmo",
+        feeDenom: "uosmo",
+        gasPrice: GasPrice.fromString("0.005uosmo"),
+        pstakeConfig: pstakeHostValsetConfigs.osmosis
     },
 
     // TESTNETS

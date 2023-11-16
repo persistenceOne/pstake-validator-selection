@@ -269,7 +269,7 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
     // assertIsDeliverTxSuccess(response)
 }
 
-function FilterDenyList(validators, denylist, reason = {name: "denylist", description: "Is part of deny list"}) {
+export function FilterDenyList(validators, denylist, reason = {name: "denylist", description: "Is part of deny list"}) {
     for (let i = 0; i < validators.length; i++) {
         for (let denyVal of denylist) {
             if (validators[i].valoper === denyVal.valAddr) {
@@ -282,7 +282,7 @@ function FilterDenyList(validators, denylist, reason = {name: "denylist", descri
     return validators
 }
 
-function FilterOnCommission(validators, commissionConfig, reason = {name: "commission", description: ""}) {
+export function FilterOnCommission(validators, commissionConfig, reason = {name: "commission", description: ""}) {
     for (let i = 0; i < validators.length; i++) {
         let validatorCommission = decodeCosmosSdkDecFromProto(validators[i].validator.commission.commissionRates.rate).toFloatApproximation()
 
@@ -300,7 +300,7 @@ function FilterOnCommission(validators, commissionConfig, reason = {name: "commi
     return validators
 }
 
-async function FilterOnUptime(tmClient, validators, uptimeConfig, valconsPrefix, reason = {
+export async function FilterOnUptime(tmClient, validators, uptimeConfig, valconsPrefix, reason = {
     name: "uptime",
     description: ""
 }) {
@@ -331,7 +331,7 @@ async function FilterOnUptime(tmClient, validators, uptimeConfig, valconsPrefix,
     return validators
 }
 
-async function FilterOnGov(govQueryClient, tmClient, validators, govConfig, hostChainPrefix, reason = {
+export async function FilterOnGov(govQueryClient, tmClient, validators, govConfig, hostChainPrefix, reason = {
     name: "governance participation", description: ""
 }) {
     let proposals = await AllPaginatedQuery(govQueryClient.Proposals, {
@@ -444,7 +444,7 @@ async function FilterOnGov(govQueryClient, tmClient, validators, govConfig, host
     return validators
 }
 
-function FilterOnVotingPower(validators, votingPowerConfig, reason = {name: "VotingPower", description: ""}) {
+export function FilterOnVotingPower(validators, votingPowerConfig, reason = {name: "VotingPower", description: ""}) {
     let sum = Decimal.zero(18)
     for (let i = 0; i < validators.length; i++) {
         let tokens = decodeCosmosSdkDecFromProto(validators[i].validator.tokens)
@@ -468,7 +468,7 @@ function FilterOnVotingPower(validators, votingPowerConfig, reason = {name: "Vot
     return validators
 }
 
-function FilterOnBlocksMissed(cosmosSlashingClient, validators, blockmissedConfig, reason = {
+export function FilterOnBlocksMissed(cosmosSlashingClient, validators, blockmissedConfig, reason = {
     name: "blocks missed in sign_window", description: ""
 }) {
 
@@ -486,7 +486,7 @@ function FilterOnBlocksMissed(cosmosSlashingClient, validators, blockmissedConfi
 }
 
 // same as slashing.
-async function FilterOnTimeActiveSet(cosmosTMClient, validators, timeActiveSetConfig, reason = {
+export async function FilterOnTimeActiveSet(cosmosTMClient, validators, timeActiveSetConfig, reason = {
     name: "Time in ActiveSet", description: ""
 }) {
     let [blockHeightBeforeNDays, currentBlock] = await BlockNDaysAgo(cosmosTMClient, timeActiveSetConfig.lastNDays)
@@ -504,7 +504,7 @@ async function FilterOnTimeActiveSet(cosmosTMClient, validators, timeActiveSetCo
 }
 
 // only finds if validator has been slashed in past N days, not the number of slashes.
-async function FilterOnSlashingEvents(cosmosTMClient, validators, slashingConfig, reason = {
+export async function FilterOnSlashingEvents(cosmosTMClient, validators, slashingConfig, reason = {
     name: "Slashing", description: ""
 }) {
     let [blockHeightBeforeNDays, currentBlock] = await BlockNDaysAgo(cosmosTMClient, slashingConfig.lastNDays)
@@ -521,7 +521,7 @@ async function FilterOnSlashingEvents(cosmosTMClient, validators, slashingConfig
     return validators
 }
 
-async function FilterOnValidatorBond(stakingClient, validators, validatorBondConfig, reason = {
+export async function FilterOnValidatorBond(stakingClient, validators, validatorBondConfig, reason = {
     name: "validator bond", description: ""
 }) {
     let stakingParams = await stakingClient.Params({})
@@ -555,11 +555,11 @@ async function FilterOnValidatorBond(stakingClient, validators, validatorBondCon
     return validators
 }
 
-function CalculateScore(val, revOptimal, max, min, normalizationFactor = 100) {
+export function CalculateScore(val, revOptimal, max, min, normalizationFactor = 100) {
     return +(Math.abs(val - revOptimal) * normalizationFactor / Math.abs(max - min)).toFixed(2)
 }
 
-function CalculateValidatorFinalScore(validator, config, lsmFlag) {
+export function CalculateValidatorFinalScore(validator, config, lsmFlag) {
 
     let numerator = (validator.commissionScore * config.commission.weight) + (validator.uptimeScore * config.uptime.weight) + (validator.govScore * config.gov.weight) + (validator.votingPowerScore * config.votingPower.weight)
     if (lsmFlag) {
@@ -574,7 +574,7 @@ function CalculateValidatorFinalScore(validator, config, lsmFlag) {
     return +(numerator / denominator)
 }
 
-async function UpdateSigningInfosToValidators(cosmosSlashingClient, validators, valconsPrefix) {
+export async function UpdateSigningInfosToValidators(cosmosSlashingClient, validators, valconsPrefix) {
     let infos = await AllPaginatedQuery(cosmosSlashingClient.SigningInfos, {}, "info")
 
     // TODO async this loop
@@ -603,7 +603,7 @@ async function UpdateSigningInfosToValidators(cosmosSlashingClient, validators, 
     return validators
 }
 
-async function QuerySigningInfosAtHeight(tmQueryClient, validator, valconsPrefix, height) {
+export async function QuerySigningInfosAtHeight(tmQueryClient, validator, valconsPrefix, height) {
     let validatorConsAddr = ValidatorPubkeyToBech32(validator.validator.consensusPubkey, valconsPrefix)
 
     const queryClient = await QueryClient.withExtensions(tmQueryClient)
@@ -615,7 +615,7 @@ async function QuerySigningInfosAtHeight(tmQueryClient, validator, valconsPrefix
 
 
 // Not the most accurate, might be even less during upgrades
-async function BlockNDaysAgo(queryClient, N) {
+export async function BlockNDaysAgo(queryClient, N) {
     const blockNow = await queryClient.block()
     const factor = 10000
     const blockOld = await queryClient.block(Number(blockNow.block.header.height) - factor)
@@ -636,6 +636,8 @@ async function UpdateValsetWeights() {
         return await Fn(chainInfos.persistenceTestnet, chainInfos.cosmosTestnet, addresses.liquidStakeIBCTestnet, LIQUIDSTAKEIBC_ADMIN_TESTNET)
     } else if (HOST_CHAIN === HOST_CHAINS.cosmos) {
         return await Fn(chainInfos.persistence, chainInfos.cosmos, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
+    } else if (HOST_CHAIN === HOST_CHAINS.osmosis) {
+        return await Fn(chainInfos.persistence, chainInfos.osmosis, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
     }
     // add more chain running on tm v34.
 }
