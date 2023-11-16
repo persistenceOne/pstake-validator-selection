@@ -66,7 +66,6 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
             votingPowerScore: 0,
             validatorBondScore: 0,
             overAllValidatorScore: 0,
-            weight: 0,
         }
         allVals.push(valmap)
     }
@@ -312,7 +311,7 @@ async function FilterOnUptime(tmClient, validators, uptimeConfig, valconsPrefix,
         for (let block = currentBlock; block > blockAgo;) {
             let uptime = await QuerySigningInfosAtHeight(tmClient, validators[i], valconsPrefix, blockAgo)
 
-            blocksMissed = blocksMissed + Number(uptime.missedBlocksCounter)
+            blocksMissed = blocksMissed + Number(uptime.valSigningInfo.missedBlocksCounter)
             maxBlocksCounted = maxBlocksCounted + uptimeConfig.blocksWindow
             block = block - uptimeConfig.blocksWindow
         }
