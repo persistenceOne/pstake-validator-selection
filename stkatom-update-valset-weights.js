@@ -364,9 +364,10 @@ async function FilterOnGov(govQueryClient, tmClient, validators, govConfig, host
         let voterAddr = ChangeAddressPrefix(validators[i].valoper, hostChainPrefix)
         let gov_pages = govConfig.maxTxPage
 
-        let tags = [{key: "message.action", value: "/cosmos.gov.v1beta1.MsgVote"}, {
-            key: "message.sender", value: voterAddr
-        },]
+        let tags = [
+            {key: "message.action", value: "/cosmos.gov.v1beta1.MsgVote"},
+            {key: "message.sender", value: voterAddr},
+        ]
         for (let page = 1; page <= gov_pages; page++) {
             let results = await tmClient.txSearch(txSearchParams(tags, page, 100))
             validators[i].proposalsVoted = []
@@ -384,9 +385,11 @@ async function FilterOnGov(govQueryClient, tmClient, validators, govConfig, host
                     }
                 }
             }
-            let authzTags = [{key: "message.action", value: "/cosmos.authz.v1beta1.MsgExec"}, {
-                key: "message.sender", value: voterAddr
-            },]
+            let authzTags = [
+                {key: "message.action", value: "/cosmos.authz.v1beta1.MsgExec"},
+                {key: "message.sender", value: voterAddr},
+                {key: "message.module", value: "governance"},
+            ]
 
             let authzResults = await tmClient.txSearch(txSearchParams(authzTags, page, 100))
             for (let transaction of authzResults.txs) {
