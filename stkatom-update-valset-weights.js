@@ -315,7 +315,7 @@ async function FilterOnUptime(tmClient, validators, uptimeConfig, valconsPrefix,
             maxBlocksCounted = maxBlocksCounted + uptimeConfig.blocksWindow
             block = block - uptimeConfig.blocksWindow
         }
-        let valUptime = blocksMissed / maxBlocksCounted
+        let valUptime = 1 - (blocksMissed / maxBlocksCounted)
 
         if (valUptime < uptimeConfig.min) {
             validators[i].deny = true
