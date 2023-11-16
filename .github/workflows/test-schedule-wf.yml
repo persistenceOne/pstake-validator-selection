@@ -30,3 +30,24 @@ jobs:
         run: npm run tx-update-stkatom-valset-weights
         env:
           MNEMONIC: ${{ secrets.MNEMONIC }}
+
+  liquidstakeibc-test-osmosis:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 16.x ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run get data to make weights
+        run: npm run test-run-chain
+
