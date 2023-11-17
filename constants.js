@@ -94,7 +94,7 @@ export const pstakeHostValsetConfigs = {
             min: 0.6,
             max: 1,
             weight: 0.4,
-            maxTxPage: 1,
+            maxTxPage: 2,
         },
         votingPower: {
             min: 0.0005,
