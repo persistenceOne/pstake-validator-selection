@@ -343,6 +343,10 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
     let maxProposalID = 0 // is actually in voting period
     let totalCompleteProposals = 0
     for (let i = 0; i < proposals.length; i++) {
+        if (proposals[i].status === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD ||
+            proposals[i].status === ProposalStatus.PROPOSAL_STATUS_DEPOSIT_PERIOD) {
+            continue
+        }
         let votingEndTime = fromTimestamp(proposals[i].votingEndTime)
         let diff = timeNow - votingEndTime
         if (diff < timeDelta && diff > zeroTime) {
