@@ -338,26 +338,18 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
     }, "proposals")
     let timeNow = new Date(Date.now())
     let timeDelta = new Date().setTime(govConfig.lastNDays * 24 * 60 * 60 * 1000) // days to milliseconds
-    let zeroTime = new Date().setTime(0)
-    let minProposalID = 0
-    let maxProposalID = 0 // is actually in voting period
-    let totalCompleteProposals = 0
+
+    let totalCompleteProposals = []
     for (let i = 0; i < proposals.length; i++) {
         if (proposals[i].status === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD ||
             proposals[i].status === ProposalStatus.PROPOSAL_STATUS_DEPOSIT_PERIOD) {
             continue
         }
+        let proposalID = proposals[i].proposalId.toNumber()
         let votingEndTime = fromTimestamp(proposals[i].votingEndTime)
         let diff = timeNow - votingEndTime
-        if (diff < timeDelta && diff > zeroTime) {
-            if (minProposalID === 0) {
-                minProposalID = proposals[i].proposalId.toNumber()
-
-            }
-            totalCompleteProposals++
-        }
-        if (diff < zeroTime && maxProposalID === 0) {
-            maxProposalID = proposals[i].proposalId.toNumber()
+        if (diff < timeDelta) {
+            totalCompleteProposals.push(proposalID)
         }
     }
 
@@ -381,7 +373,7 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
                         if (message.typeUrl === "/cosmos.gov.v1beta1.MsgVote" || message.typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted") {
                             const body = CustomRegistry.decode(message);
                             let proposalID = Number(body.proposalId)
-                            if (minProposalID <= proposalID && proposalID < maxProposalID && !validators[i].proposalsVoted.includes(proposalID)) {
+                            if (totalCompleteProposals.includes(proposalID) && !validators[i].proposalsVoted.includes(proposalID)) {
                                 validators[i].proposalsVoted.push(proposalID)
                             }
                         }
@@ -406,7 +398,7 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
                                 if (authzmsg.typeUrl === "/cosmos.gov.v1beta1.MsgVote" || authzmsg.typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted") {
                                     const msgBody = CustomRegistry.decode(authzmsg);
                                     let proposalID = Number(msgBody.proposalId)
-                                    if (minProposalID <= proposalID && proposalID < maxProposalID && !validators[i].proposalsVoted.includes(proposalID)) {
+                                    if (totalCompleteProposals.includes(proposalID) && !validators[i].proposalsVoted.includes(proposalID)) {
                                         validators[i].proposalsVoted.push(proposalID)
                                     }
                                 }
@@ -419,7 +411,7 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
     }
     // ideally should be equal to totalCompleteProposals, but since archival node might not have all data.
     // we choose max by any validator and take % out of it
-    // let maxVoted = totalCompleteProposals
+    // let maxVoted = totalCompleteProposals.length
     let maxVoted = 0
     for (let i = 0; i < validators.length; i++) {
         if (validators[i].proposalsVoted.length > maxVoted) {
