@@ -240,7 +240,7 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
         })
     }
 
-    if (kvUpdates.length === 0) {
+    if (kvUpdates.length <= hostChain.hostChain.validators.length) {
         console.log("no kv updates, total kv updates:", kvUpdates.length)
         return
     } else {
@@ -653,4 +653,4 @@ async function Fn(controllerChainInfo, hostChainInfo, txnSenderAddress, adminAdd
     }
 }
 
-UpdateValsetWeights().then(_ => console.log("Success")).catch(e => console.log(e))
+UpdateValsetWeights().then(_ => console.log("Success"))
