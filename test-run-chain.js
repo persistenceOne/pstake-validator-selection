@@ -131,7 +131,7 @@ async function GetTestHostChainValSetData(persistenceChainInfo, cosmosChainInfo)
     }
 
     for (let i = 0; i < allVals.length; i++) {
-        let valScore = CalculateValidatorFinalScore(allVals[i], cosmosChainInfo.pstakeConfig, hostChain.hostChain.flags.lsm)
+        let valScore = CalculateValidatorFinalScore(allVals[i], cosmosChainInfo.pstakeConfig, false)
         allVals[i].overAllValidatorScore = valScore
     }
 
