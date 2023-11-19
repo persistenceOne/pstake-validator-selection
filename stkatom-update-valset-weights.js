@@ -358,14 +358,16 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
 
         let voterAddr = ChangeAddressPrefix(validators[i].valoper, hostChainPrefix)
         let gov_pages = govConfig.maxTxPage
+        let per_page = 100
+        validators[i].proposalsVoted = []
 
-        let tags = [
-            {key: "message.action", value: "/cosmos.gov.v1beta1.MsgVote"},
-            {key: "message.sender", value: voterAddr},
-        ]
         for (let page = 1; page <= gov_pages; page++) {
-            let results = await tmClient.txSearch(txSearchParams(tags, page, 100))
-            validators[i].proposalsVoted = []
+            let tags = [
+                // {key: "message.action", value: "/cosmos.gov.v1beta1.MsgVote"},
+                {key: "message.module", value: "governance"},
+                {key: "message.sender", value: voterAddr},
+            ]
+            let results = await tmClient.txSearch(txSearchParams(tags, page, per_page))
             for (let transaction of results.txs) {
                 const decodedTransaction = proto.decodeTxRaw(transaction.tx);
                 if (transaction.result.code === 0) {
@@ -380,13 +382,19 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
                     }
                 }
             }
+            if (results.totalCount < per_page * (page)) {
+                break
+            }
+
+        }
+        for (let page = 1; page <= gov_pages; page++) {
             let authzTags = [
                 {key: "message.action", value: "/cosmos.authz.v1beta1.MsgExec"},
                 {key: "message.sender", value: voterAddr},
                 {key: "message.module", value: "governance"},
             ]
 
-            let authzResults = await tmClient.txSearch(txSearchParams(authzTags, page, 100))
+            let authzResults = await tmClient.txSearch(txSearchParams(authzTags, page, per_page))
             for (let transaction of authzResults.txs) {
                 const decodedTransaction = proto.decodeTxRaw(transaction.tx);
                 if (transaction.result.code === 0) {
@@ -406,6 +414,9 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
                         }
                     }
                 }
+            }
+            if (authzResults.totalCount < per_page * (page)) {
+                break
             }
         }
     }
