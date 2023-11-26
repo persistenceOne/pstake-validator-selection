@@ -9,7 +9,7 @@ on:
     - cron: '0 */6 * * *' # every 3 hours
 
 jobs:
-  liquidstakeibc:
+  liquidstakeibc-cosmos-valset:
     #    if: github.event.schedule == '55 12 * * *'
     if: github.event.schedule == '0 */6 * * *'
     runs-on: ubuntu-latest
