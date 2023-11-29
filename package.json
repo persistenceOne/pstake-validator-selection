@@ -8,6 +8,8 @@
     "tx-update-stkatom-valset-weights": "FN='DO_TX' HOST_CHAIN='cosmos' NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
     "update-stkosmosis-valset-weights": "FN='GET_DATA' HOST_CHAIN='osmosis' NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
     "tx-update-stkosmosis-valset-weights": "FN='DO_TX' HOST_CHAIN='osmosis' NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
+    "update-testnets-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
+    "tx-update-testnets-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
     "test-run-chain": "NODE_OPTIONS='--experimental-specifier-resolution=node' node test-run-chain.js",
     "print-test": "node print-test.js",
     "test": "echo \"Error: no test specified\" && exit 1"

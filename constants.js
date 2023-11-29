@@ -7,7 +7,8 @@ export const FNS = {getData: "GET_DATA", doTx: "DO_TX"}
 export const HOST_CHAINS = {
     cosmos: "cosmos",
     osmosis: "osmosis",
-    cosmosTestnet: "cosmosTestnet"
+    cosmosTestnet: "cosmosTestnet",
+    osmosisTestnet: "osmosisTestnet"
 }
 export const MNEMONIC = process.env.MNEMONIC
 export const FN = process.env.FN
@@ -112,7 +113,98 @@ export const pstakeHostValsetConfigs = {
             lastNDays: 180,
             max: 0
         }
-    }
+    },
+
+
+    cosmosTestnet: {
+        filename: "data_cosmos_testnet.json",
+        valconsPrefix: "cosmosvalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.15,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 1,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.1
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        },
+        validatorBond: {
+            min: 0.001,
+            max: 0.2,
+            weight: 0.1
+        }
+    },
+    osmosisTestnet: {
+        filename: "data_osmosis_testnet.json",
+        valconsPrefix: "osmovalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.15,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 2,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.1
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        }
+    },
 }
 export const chainInfos = {
     persistence: {
@@ -155,8 +247,18 @@ export const chainInfos = {
         chainID: "theta-testnet-001",
         prefix: "cosmos",
         feeDenom: "uatom",
-        gasPrice: GasPrice.fromString("0.005uatom")
+        gasPrice: GasPrice.fromString("0.005uatom"),
+        pstakeConfig: pstakeHostValsetConfigs.cosmosTestnet
     },
+    osmosisTestnet: {
+        rpc: "https://rpc.osmotest5.osmosis.zone:443",
+        chainID: "osmo-test-5",
+        prefix: "osmo",
+        feeDenom: "uosmo",
+        gasPrice: GasPrice.fromString("0.005uosmo"),
+        pstakeConfig: pstakeHostValsetConfigs.osmosisTestnet
+    },
+
 }
 export const addresses = {
     liquidStakeIBC: {

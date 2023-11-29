@@ -503,7 +503,7 @@ export async function FilterOnTimeActiveSet(cosmosTMClient, validators, timeActi
             validators[i].deny = true
             let submitReason = {}
             submitReason.name = reason.name
-            submitReason.description = `Required greater than ${blockHeightBeforeNDays} , found ${startHeight} `
+            submitReason.description = `Required less than ${blockHeightBeforeNDays} , found ${startHeight} `
             validators[i].denyReason.push(submitReason)
         }
     }
@@ -521,7 +521,7 @@ export async function FilterOnSlashingEvents(cosmosTMClient, validators, slashin
             validators[i].deny = true
             let submitReason = {}
             submitReason.name = reason.name
-            submitReason.description = `Required greater than ${blockHeightBeforeNDays} , found ${startHeight} `
+            submitReason.description = `Required less than ${blockHeightBeforeNDays} , found ${startHeight} `
             validators[i].denyReason.push(submitReason)
         }
     }
@@ -641,6 +641,8 @@ export async function BlockNDaysAgo(queryClient, N) {
 async function UpdateValsetWeights() {
     if (HOST_CHAIN === HOST_CHAINS.cosmosTestnet) {
         return await Fn(chainInfos.persistenceTestnet, chainInfos.cosmosTestnet, addresses.liquidStakeIBCTestnet, LIQUIDSTAKEIBC_ADMIN_TESTNET)
+    } else if (HOST_CHAIN === HOST_CHAINS.osmosisTestnet) {
+        return await Fn(chainInfos.persistenceTestnet, chainInfos.osmosisTestnet, addresses.liquidStakeIBCTestnet, LIQUIDSTAKEIBC_ADMIN_TESTNET)
     } else if (HOST_CHAIN === HOST_CHAINS.cosmos) {
         return await Fn(chainInfos.persistence, chainInfos.cosmos, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
     } else if (HOST_CHAIN === HOST_CHAINS.osmosis) {
