@@ -641,6 +641,8 @@ export async function BlockNDaysAgo(queryClient, N) {
 async function UpdateValsetWeights() {
     if (HOST_CHAIN === HOST_CHAINS.cosmosTestnet) {
         return await Fn(chainInfos.persistenceTestnet, chainInfos.cosmosTestnet, addresses.liquidStakeIBCTestnet, LIQUIDSTAKEIBC_ADMIN_TESTNET)
+    } else if (HOST_CHAIN === HOST_CHAINS.osmosisTestnet) {
+        return await Fn(chainInfos.persistenceTestnet, chainInfos.osmosisTestnet, addresses.liquidStakeIBCTestnet, LIQUIDSTAKEIBC_ADMIN_TESTNET)
     } else if (HOST_CHAIN === HOST_CHAINS.cosmos) {
         return await Fn(chainInfos.persistence, chainInfos.cosmos, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
     } else if (HOST_CHAIN === HOST_CHAINS.osmosis) {
