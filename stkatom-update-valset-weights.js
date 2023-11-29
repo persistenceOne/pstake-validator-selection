@@ -503,7 +503,7 @@ export async function FilterOnTimeActiveSet(cosmosTMClient, validators, timeActi
             validators[i].deny = true
             let submitReason = {}
             submitReason.name = reason.name
-            submitReason.description = `Required greater than ${blockHeightBeforeNDays} , found ${startHeight} `
+            submitReason.description = `Required less than ${blockHeightBeforeNDays} , found ${startHeight} `
             validators[i].denyReason.push(submitReason)
         }
     }
@@ -521,7 +521,7 @@ export async function FilterOnSlashingEvents(cosmosTMClient, validators, slashin
             validators[i].deny = true
             let submitReason = {}
             submitReason.name = reason.name
-            submitReason.description = `Required greater than ${blockHeightBeforeNDays} , found ${startHeight} `
+            submitReason.description = `Required less than ${blockHeightBeforeNDays} , found ${startHeight} `
             validators[i].denyReason.push(submitReason)
         }
     }
