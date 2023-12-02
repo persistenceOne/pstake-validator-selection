@@ -20,7 +20,7 @@ import {
 
 async function GetTestHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
-    const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo.rpc)
+    const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
     const cosmosGovClient = new GovQuery(cosmosRpcClient)
     const cosmosSlashingClient = new SlashingQuery(cosmosRpcClient)
@@ -155,4 +155,4 @@ async function GetTestHostChainValSetData(persistenceChainInfo, cosmosChainInfo)
     return
 }
 
-GetTestHostChainValSetData(chainInfos.persistence, chainInfos.osmosis).then(r => console.log("SUCCESS")).catch(e => console.error(e))
+// GetTestHostChainValSetData(chainInfos.persistence, chainInfos.osmosis).then(r => console.log("SUCCESS")).catch(e => console.error(e))

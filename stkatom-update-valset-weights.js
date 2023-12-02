@@ -37,11 +37,11 @@ import * as fs from "fs";
 import * as proto from "@cosmjs/proto-signing";
 
 async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
-    const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo.rpc)
+    const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
     const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
     let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
 
-    const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo.rpc)
+    const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
     const cosmosGovClient = new GovQuery(cosmosRpcClient)
     const cosmosSlashingClient = new SlashingQuery(cosmosRpcClient)
@@ -178,7 +178,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 }
 
 async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, granteePersistenceAddr, AuthzGranterAddr) {
-    const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo.rpc)
+    const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
     const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
     let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
 
@@ -639,6 +639,7 @@ export async function BlockNDaysAgo(queryClient, N) {
 }
 
 async function UpdateValsetWeights() {
+    console.log(HOST_CHAIN, FN)
     if (HOST_CHAIN === HOST_CHAINS.cosmosTestnet) {
         return await Fn(chainInfos.persistenceTestnet, chainInfos.cosmosTestnet, addresses.liquidStakeIBCTestnet, LIQUIDSTAKEIBC_ADMIN_TESTNET)
     } else if (HOST_CHAIN === HOST_CHAINS.osmosisTestnet) {

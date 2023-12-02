@@ -10,6 +10,11 @@ export const HOST_CHAINS = {
     cosmosTestnet: "cosmosTestnet",
     osmosisTestnet: "osmosisTestnet"
 }
+export const COMETBFT_VERSIONS = {
+    comet34: "34",
+    comet37: "37",
+    comet38: "38",
+}
 export const MNEMONIC = process.env.MNEMONIC
 export const FN = process.env.FN
 export const HOST_CHAIN = process.env.HOST_CHAIN
@@ -212,7 +217,8 @@ export const chainInfos = {
         chainID: "core-1",
         prefix: "persistence",
         feeDenom: "uxprt",
-        gasPrice: GasPrice.fromString("0.005uxprt")
+        gasPrice: GasPrice.fromString("0.005uxprt"),
+        tmVersion: COMETBFT_VERSIONS.comet37
     },
     cosmos: {
         rpc: "https://r-sub_cosmoshub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
@@ -222,15 +228,18 @@ export const chainInfos = {
         prefix: "cosmos",
         feeDenom: "uatom",
         gasPrice: GasPrice.fromString("0.005uatom"),
+        tmVersion: COMETBFT_VERSIONS.comet34,
         pstakeConfig: pstakeHostValsetConfigs.cosmos
     },
     osmosis: {
         rpc: "https://r-sub_osmosis--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://rpc.osmosis-1.audit.one:443",
-        chainID: "osmosis-4",
+        // rpc: "https://osmosis-rpc.polkachu.com:443",
+        chainID: "osmosis-1",
         prefix: "osmo",
         feeDenom: "uosmo",
         gasPrice: GasPrice.fromString("0.005uosmo"),
+        tmVersion: COMETBFT_VERSIONS.comet34,
         pstakeConfig: pstakeHostValsetConfigs.osmosis
     },
 
@@ -240,6 +249,7 @@ export const chainInfos = {
         chainID: "test-core-2",
         prefix: "persistence",
         feeDenom: "uxprt",
+        tmVersion: COMETBFT_VERSIONS.comet37,
         gasPrice: GasPrice.fromString("0.005uxprt")
     },
     cosmosTestnet: {
@@ -248,6 +258,7 @@ export const chainInfos = {
         prefix: "cosmos",
         feeDenom: "uatom",
         gasPrice: GasPrice.fromString("0.005uatom"),
+        tmVersion: COMETBFT_VERSIONS.comet34,
         pstakeConfig: pstakeHostValsetConfigs.cosmosTestnet
     },
     osmosisTestnet: {
@@ -256,6 +267,7 @@ export const chainInfos = {
         prefix: "osmo",
         feeDenom: "uosmo",
         gasPrice: GasPrice.fromString("0.005uosmo"),
+        tmVersion: COMETBFT_VERSIONS.comet37,
         pstakeConfig: pstakeHostValsetConfigs.osmosisTestnet
     },
 
