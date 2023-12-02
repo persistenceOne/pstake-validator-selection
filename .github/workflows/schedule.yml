@@ -38,7 +38,7 @@ jobs:
 #        run: npm run tx-update-stkatom-valset-weights
 #        env:
 #          MNEMONIC: ${{ secrets.MNEMONIC }}
-#          FN: "GET_DATA"
+#          FN: "DO_TX"
 #          HOST_CHAIN: "cosmos"
 
   liquidstakeibc-osmosis-valset:
