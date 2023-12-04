@@ -207,13 +207,13 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
     // add kv updates to add_validators
     for (let i = 0; i < add_vals.length; i++) {
         kvUpdates.push({
-            key: "add_validator", value: {
+            key: "add_validator", value: JSON.stringify({
                 operator_address: add_vals[i],
                 status: "BOND_STATUS_UNSPECIFIED",
                 weight: "0",
                 delegated_amount: "0",
                 exchange_rate: "1"
-            }
+            })
         })
         kvUpdates.push({
             key: "validator_update", value: add_vals[i]
