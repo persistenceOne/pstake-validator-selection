@@ -66,7 +66,8 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
             votingPowerScore: 0,
             validatorBondScore: 0,
             overAllValidatorScore: 0,
-            weight: 0
+            weight: 0,
+            moniker: validator.description.moniker,
         }
         allVals.push(valmap)
     }
