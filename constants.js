@@ -221,7 +221,8 @@ export const chainInfos = {
         tmVersion: COMETBFT_VERSIONS.comet37
     },
     cosmos: {
-        rpc: "https://r-sub_cosmoshub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        rpc: "https://r-cosmoshub-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        // rpc: "https://r-sub_cosmoshub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://rpc.cosmos.audit.one:443",
         // rpc: "https://cosmos-rpc.polkachu.com:443",
         chainID: "cosmoshub-4",
@@ -232,7 +233,8 @@ export const chainInfos = {
         pstakeConfig: pstakeHostValsetConfigs.cosmos
     },
     osmosis: {
-        rpc: "https://r-sub_osmosis--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        rpc: "https://r-osmosis-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        // rpc: "https://r-sub_osmosis--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://rpc.osmosis-1.audit.one:443",
         // rpc: "https://osmosis-rpc.polkachu.com:443",
         chainID: "osmosis-1",
