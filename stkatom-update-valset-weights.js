@@ -9,6 +9,7 @@ import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1beta1/query
 import {
     AllPaginatedQuery,
     ChangeAddressPrefix,
+    CreateSigningClientFromAddress,
     CustomRegistry,
     parseJson,
     RpcClient,
@@ -26,7 +27,7 @@ import {
     LIQUIDSTAKEIBC_ADMIN,
     LIQUIDSTAKEIBC_ADMIN_TESTNET
 } from "./constants.js";
-import {decodeCosmosSdkDecFromProto, QueryClient} from "@cosmjs/stargate";
+import {assertIsDeliverTxSuccess, decodeCosmosSdkDecFromProto, QueryClient} from "@cosmjs/stargate";
 import {MsgExec} from "cosmjs-types/cosmos/authz/v1beta1/tx.js";
 import {MsgUpdateHostChain} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/msgs.js";
 import {BondStatus, bondStatusToJSON} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
@@ -264,10 +265,10 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
     }
     console.log("msg: ", JSON.stringify(msg))
 
-    // const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
-    // const response = await signingPersistenceClient.signAndBroadcast(granteePersistenceAddr.address, [msg], 1.5, "Auto validator update check")
-    // console.log(JSON.stringify(response))
-    // assertIsDeliverTxSuccess(response)
+    const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
+    const response = await signingPersistenceClient.signAndBroadcast(granteePersistenceAddr.address, [msg], 1.5, "Auto validator update check")
+    console.log(JSON.stringify(response))
+    assertIsDeliverTxSuccess(response)
 }
 
 export function FilterDenyList(validators, denylist, reason = {name: "denylist", description: "Is part of deny list"}) {
