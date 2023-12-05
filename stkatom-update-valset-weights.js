@@ -348,7 +348,7 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
             proposals[i].status === ProposalStatus.PROPOSAL_STATUS_DEPOSIT_PERIOD) {
             continue
         }
-        let proposalID = proposals[i].proposalId.toNumber()
+        let proposalID = proposals[i].proposalId !== undefined ? proposals[i].proposalId.toNumber() : proposals[i].id.toNumber()
         let votingEndTime = fromTimestamp(proposals[i].votingEndTime)
         let diff = timeNow - votingEndTime
         if (diff < timeDelta) {
