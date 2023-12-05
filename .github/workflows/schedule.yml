@@ -4,8 +4,8 @@ on:
   schedule:
     - cron: '55 12 * * *' # post mainnet epoch
     #    - cron: '00 12 * * *' # pre mainnet epoch
-    #    - cron: '00 11 * * *' # post testnet epoch
-    - cron: '0 10 * * *' # pre testnet epoch
+    - cron: '00 11 * * *' # post testnet epoch
+    #    - cron: '0 10 * * *' # pre testnet epoch
     - cron: '0 */6 * * *' # every 3 hours
 
 jobs:
@@ -42,8 +42,8 @@ jobs:
 #          HOST_CHAIN: "cosmos"
 
   liquidstakeibc-osmosis-valset:
-    #    if: github.event.schedule == '55 12 * * *'
-    if: github.event.schedule == '0 */6 * * *'
+    if: github.event.schedule == '55 12 * * *'
+#    if: github.event.schedule == '0 */6 * * *'
     runs-on: ubuntu-latest
 
     strategy:
@@ -106,7 +106,7 @@ jobs:
 #          HOST_CHAIN: "persistence"
 
   liquidstakeibc-cosmos-testnet-valset:
-#    if: github.event.schedule == '0 10 * * *'
+#    if: github.event.schedule == '00 11 * * *'
     if: github.event.schedule == '0 */6 * * *'
     runs-on: ubuntu-latest
 
@@ -138,7 +138,7 @@ jobs:
           HOST_CHAIN: "cosmosTestnet"
 
   liquidstakeibc-osmosis-testnet-valset:
-#    if: github.event.schedule == '0 10 * * *'
+#    if: github.event.schedule == '00 11 * * *'
     if: github.event.schedule == '0 */6 * * *'
     runs-on: ubuntu-latest
 
@@ -170,7 +170,7 @@ jobs:
           HOST_CHAIN: "osmosisTestnet"
 
   liquidstakeibc-persistence-testnet-valset:
-    #    if: github.event.schedule == '0 10 * * *'
+    #    if: github.event.schedule == '00 11 * * *'
     if: github.event.schedule == '0 */6 * * *'
     runs-on: ubuntu-latest
 
