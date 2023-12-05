@@ -7,8 +7,10 @@ export const FNS = {getData: "GET_DATA", doTx: "DO_TX"}
 export const HOST_CHAINS = {
     cosmos: "cosmos",
     osmosis: "osmosis",
+    persistence: "persistence",
     cosmosTestnet: "cosmosTestnet",
-    osmosisTestnet: "osmosisTestnet"
+    osmosisTestnet: "osmosisTestnet",
+    persistenceTestnet: "persistenceTestnet",
 }
 export const COMETBFT_VERSIONS = {
     comet34: "34",
@@ -20,6 +22,7 @@ export const FN = process.env.FN
 export const HOST_CHAIN = process.env.HOST_CHAIN
 export const LIQUIDSTAKEIBC_ADMIN = "persistence1ealyadcds02yvsn78he4wntt7tpdqhlhg7y2s6"
 export const LIQUIDSTAKEIBC_ADMIN_TESTNET = "persistence18dsfsljczehwd5yem9qq2jcz56dz3shp48j3zj"
+export const GOV_MODULE_ADDRESS = "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5w4kch"
 
 export const pstakeHostValsetConfigs = {
     cosmos: {
@@ -119,7 +122,53 @@ export const pstakeHostValsetConfigs = {
             max: 0
         }
     },
-
+    persistence: {
+        filename: "data_persistence.json",
+        valconsPrefix: "persistencevalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.15,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 1,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.1
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        },
+        validatorBond: {
+            min: 0.001,
+            max: 0.2,
+            weight: 0.1
+        }
+    },
 
     cosmosTestnet: {
         filename: "data_cosmos_testnet.json",
@@ -210,6 +259,53 @@ export const pstakeHostValsetConfigs = {
             max: 0
         }
     },
+    persistenceTestnet: {
+        filename: "data_persistence_testnet.json",
+        valconsPrefix: "persistencevalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.15,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 1,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.1
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        },
+        validatorBond: {
+            min: 0.001,
+            max: 0.2,
+            weight: 0.1
+        }
+    },
 }
 export const chainInfos = {
     persistence: {
@@ -218,7 +314,8 @@ export const chainInfos = {
         prefix: "persistence",
         feeDenom: "uxprt",
         gasPrice: GasPrice.fromString("0.005uxprt"),
-        tmVersion: COMETBFT_VERSIONS.comet37
+        tmVersion: COMETBFT_VERSIONS.comet37,
+        pstakeConfig: pstakeHostValsetConfigs.persistence
     },
     cosmos: {
         rpc: "https://r-cosmoshub-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
@@ -252,7 +349,8 @@ export const chainInfos = {
         prefix: "persistence",
         feeDenom: "uxprt",
         tmVersion: COMETBFT_VERSIONS.comet37,
-        gasPrice: GasPrice.fromString("0.005uxprt")
+        gasPrice: GasPrice.fromString("0.005uxprt"),
+        pstakeConfig: pstakeHostValsetConfigs.persistenceTestnet
     },
     cosmosTestnet: {
         rpc: "http://rpc.sentry-02.theta-testnet.polypore.xyz:26657",
