@@ -213,7 +213,7 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
                 weight: "0",
                 delegated_amount: "0",
                 exchange_rate: "1",
-                delegable: true
+                delegable: !hostChain.hostChain.flags.lsm
             })
         })
         kvUpdates.push({
