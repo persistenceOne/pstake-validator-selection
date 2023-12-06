@@ -212,7 +212,8 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
                 status: "BOND_STATUS_UNSPECIFIED",
                 weight: "0",
                 delegated_amount: "0",
-                exchange_rate: "1"
+                exchange_rate: "1",
+                delegable: true
             })
         })
         kvUpdates.push({
