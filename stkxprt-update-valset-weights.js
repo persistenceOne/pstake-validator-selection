@@ -164,7 +164,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
         if (allVals[i].deny === true) {
             continue
         }
-        allVals[i].weight = allVals[i].overAllValidatorScore / totalDenom
+        allVals[i].weight = +(allVals[i].overAllValidatorScore / totalDenom).toFixed(10)
     }
 
     const jsonString = stringifyJson(allVals)
@@ -180,24 +180,31 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
 
     let allVals = parseJson(fs.readFileSync(cosmosChainInfo.pstakeConfig.filename))
 
-    // add kv updates to set weight, add to check if sum of weights is 1.
-    let kvUpdates = []
-    let sum = 0
+    // add kv updates to set weight
+    let nonZeroVals = []
     for (let i = 0; i < allVals.length; i++) {
         if (allVals[i].deny === true) {
             continue
         }
-
-        // to scratch float approximations
-        let sum2 = sum + allVals[i].weight
-        if (sum2 > 1) {
-            allVals[i].weight = 1 - sum
-        }
-        sum = sum2
-        kvUpdates.push({
-            validatorAddress: allVals[i].valoper, targetWeight: allVals[i].weight.toString()
+        nonZeroVals.push({
+            valoper: allVals[i].valoper,
+            weight: allVals[i].weight
         })
     }
+    // add to check if sum of weights is 1.
+    let sum = 0
+    let kvUpdates = []
+    for (let i = 0; i < nonZeroVals.length; i++) {
+        // to scratch float approximations
+        if (i === nonZeroVals.length - 1) {
+            nonZeroVals[i].weight = 1 - sum
+        }
+        sum = sum + nonZeroVals[i].weight
+        kvUpdates.push({
+            validatorAddress: nonZeroVals[i].valoper, targetWeight: nonZeroVals[i].weight.toString()
+        })
+    }
+
     let newHostChainParams = hostChainParams.params
     newHostChainParams.whitelistedValidators = kvUpdates
 
