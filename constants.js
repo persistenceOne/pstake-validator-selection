@@ -338,7 +338,7 @@ export const chainInfos = {
         prefix: "osmo",
         feeDenom: "uosmo",
         gasPrice: GasPrice.fromString("0.005uosmo"),
-        tmVersion: COMETBFT_VERSIONS.comet34,
+        tmVersion: COMETBFT_VERSIONS.comet37,
         pstakeConfig: pstakeHostValsetConfigs.osmosis
     },
 
