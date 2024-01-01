@@ -4,13 +4,15 @@ import {decodePubkey, DirectSecp256k1HdWallet, Registry} from "@cosmjs/proto-sig
 import {defaultRegistryTypes as defaultStargateTypes} from "@cosmjs/stargate/build/signingstargateclient.js";
 import {registry as liquidstakeibcRegistry} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/msgs.registry.js";
 import {registry as lscosmosRegistry} from "persistenceonejs/pstake/lscosmos/v1beta1/msgs.registry.js";
+import {registry as govv1Registry} from "persistenceonejs/cosmos/gov/v1/tx.registry.js";
 import {COMETBFT_VERSIONS, MNEMONIC} from "./constants.js";
 import {Long} from "cosmjs-types/helpers";
 import {fromBase64, fromBech32, toBech32} from "@cosmjs/encoding";
 import {sha256} from "@cosmjs/crypto";
 import {buildQuery} from "@cosmjs/tendermint-rpc/build/tendermint34/requests.js";
 
-export const CustomRegistry = new Registry([...defaultStargateTypes, ...liquidstakeibcRegistry, ...lscosmosRegistry]);
+export const CustomRegistry = new Registry([...defaultStargateTypes,
+    ...liquidstakeibcRegistry, ...lscosmosRegistry, ...govv1Registry]);
 
 export async function RpcClient(chainInfo) {
     let tendermintClient = {}

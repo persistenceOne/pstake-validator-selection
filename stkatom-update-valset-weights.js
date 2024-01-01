@@ -6,6 +6,7 @@ import {
     QuerySigningInfoResponse,
 } from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
 import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1beta1/query.js"
+import {QueryClientImpl as GovV1Query} from "cosmjs-types/cosmos/gov/v1/query.js"
 import {
     AllPaginatedQuery,
     ChangeAddressPrefix,
@@ -20,6 +21,7 @@ import {
 import {
     addresses,
     chainInfos,
+    COMETBFT_VERSIONS,
     FN,
     FNS,
     HOST_CHAIN,
@@ -45,6 +47,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
     const cosmosGovClient = new GovQuery(cosmosRpcClient)
+    const cosmosGovV1Client = new GovV1Query(cosmosRpcClient)
     const cosmosSlashingClient = new SlashingQuery(cosmosRpcClient)
 
     // query all bonded vals
@@ -136,7 +139,11 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
     // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up ( approx 180 requests )
     try {
-        allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+        if (cosmosChainInfo.tmVersion === COMETBFT_VERSIONS.comet34) {
+            allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+        } else {
+            allVals = await FilterOnGov(cosmosGovV1Client, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+        }
     } catch (e) {
         throw e
     }
