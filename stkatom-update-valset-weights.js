@@ -390,7 +390,10 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
                 const decodedTransaction = proto.decodeTxRaw(transaction.tx);
                 if (transaction.result.code === 0) {
                     for (let message of decodedTransaction.body.messages) {
-                        if (message.typeUrl === "/cosmos.gov.v1beta1.MsgVote" || message.typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted") {
+                        if (message.typeUrl === "/cosmos.gov.v1beta1.MsgVote" ||
+                            message.typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted" ||
+                            message.typeUrl === "/cosmos.gov.v1.MsgVote" ||
+                            message.typeUrl === "/cosmos.gov.v1.MsgVoteWeighted") {
                             const body = CustomRegistry.decode(message);
                             let proposalID = Number(body.proposalId)
                             if (totalCompleteProposals.includes(proposalID) && !validators[i].proposalsVoted.includes(proposalID)) {
@@ -421,7 +424,10 @@ export async function FilterOnGov(govQueryClient, tmClient, validators, govConfi
                             const body = CustomRegistry.decode(message);
                             for (let authzmsg of body.msgs) {
                                 // shall not go recursive, no ica msgVotes allowed
-                                if (authzmsg.typeUrl === "/cosmos.gov.v1beta1.MsgVote" || authzmsg.typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted") {
+                                if (authzmsg.typeUrl === "/cosmos.gov.v1beta1.MsgVote" ||
+                                    authzmsg.typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted" ||
+                                    message.typeUrl === "/cosmos.gov.v1.MsgVote" ||
+                                    message.typeUrl === "/cosmos.gov.v1.MsgVoteWeighted") {
                                     const msgBody = CustomRegistry.decode(authzmsg);
                                     let proposalID = Number(msgBody.proposalId)
                                     if (totalCompleteProposals.includes(proposalID) && !validators[i].proposalsVoted.includes(proposalID)) {
