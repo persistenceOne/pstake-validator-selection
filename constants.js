@@ -7,6 +7,7 @@ export const FNS = {getData: "GET_DATA", doTx: "DO_TX"}
 export const HOST_CHAINS = {
     cosmos: "cosmos",
     osmosis: "osmosis",
+    dydx: "dydx",
     persistence: "persistence",
     cosmosTestnet: "cosmosTestnet",
     osmosisTestnet: "osmosisTestnet",
@@ -83,6 +84,48 @@ export const pstakeHostValsetConfigs = {
     osmosis: {
         filename: "data_osmosis.json",
         valconsPrefix: "osmovalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.15,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 3,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.1
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        }
+    },
+    dydx: {
+        filename: "data_dydx.json",
+        valconsPrefix: "dydxvalcons",
         denyListVals: [
             // {name: "", valAddr: ""},
         ],
@@ -340,6 +383,18 @@ export const chainInfos = {
         gasPrice: GasPrice.fromString("0.005uosmo"),
         tmVersion: COMETBFT_VERSIONS.comet37,
         pstakeConfig: pstakeHostValsetConfigs.osmosis
+    },
+    dydx: {
+        rpc: "https://r-dydx-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        // rpc: "https://dydx-mainnet-full-rpc.public.blastapi.io:443",
+        // rpc: "https://dydx-rpc.kingnodes.com:443",
+        // rpc: "https://dydx-dao-rpc.polkachu.com:443",
+        chainID: "dydx-mainnet-1",
+        prefix: "dydx",
+        feeDenom: "adydx",
+        gasPrice: GasPrice.fromString("0.005adydx"),
+        tmVersion: COMETBFT_VERSIONS.comet34,
+        pstakeConfig: pstakeHostValsetConfigs.dydx
     },
 
     // TESTNETS
