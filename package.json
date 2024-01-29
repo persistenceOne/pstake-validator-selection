@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "update-stkatom-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
+    "smartstake-update-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node smartstake-update-valset-weights.js",
     "update-stkxprt-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkxprt-update-valset-weights.js",
     "test-run-chain": "NODE_OPTIONS='--experimental-specifier-resolution=node' node test-run-chain.js",
     "print-test": "node print-test.js",
@@ -33,6 +34,7 @@
     "@cosmjs/tendermint-rpc": "^0.31.1",
     "cosmjs-types": "^0.8.0",
     "dotenv": "^16.0.3",
+    "node-fetch": "^3.3.2",
     "persistenceonejs": "^2.4.0-rc0"
   }
 }

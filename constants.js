@@ -21,12 +21,14 @@ export const COMETBFT_VERSIONS = {
 export const MNEMONIC = process.env.MNEMONIC
 export const FN = process.env.FN
 export const HOST_CHAIN = process.env.HOST_CHAIN
+export const SMARTSTAKE_ACCESS_KEY = process.env.SMARTSTAKE_ACCESS_KEY
 export const LIQUIDSTAKEIBC_ADMIN = "persistence1ealyadcds02yvsn78he4wntt7tpdqhlhg7y2s6"
 export const LIQUIDSTAKEIBC_ADMIN_TESTNET = "persistence18dsfsljczehwd5yem9qq2jcz56dz3shp48j3zj"
 export const GOV_MODULE_ADDRESS = "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5w4kch"
 
 export const pstakeHostValsetConfigs = {
     cosmos: {
+        smartStakeApiAppName : "ATOM",
         filename: "data_cosmos.json",
         valconsPrefix: "cosmosvalcons",
         denyListVals: [
@@ -82,6 +84,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     osmosis: {
+        smartStakeApiAppName : "OSMO",
         filename: "data_osmosis.json",
         valconsPrefix: "osmovalcons",
         denyListVals: [
@@ -124,6 +127,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     dydx: {
+        smartStakeApiAppName : "DYDX",
         filename: "data_dydx.json",
         valconsPrefix: "dydxvalcons",
         denyListVals: [
@@ -166,6 +170,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     persistence: {
+        smartStakeApiAppName : "XPRT",
         filename: "data_persistence.json",
         valconsPrefix: "persistencevalcons",
         denyListVals: [
@@ -214,6 +219,7 @@ export const pstakeHostValsetConfigs = {
     },
 
     cosmosTestnet: {
+        smartStakeApiAppName : "",
         filename: "data_cosmos_testnet.json",
         valconsPrefix: "cosmosvalcons",
         denyListVals: [
@@ -261,6 +267,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     osmosisTestnet: {
+        smartStakeApiAppName : "",
         filename: "data_osmosis_testnet.json",
         valconsPrefix: "osmovalcons",
         denyListVals: [
@@ -303,6 +310,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     persistenceTestnet: {
+        smartStakeApiAppName : "",
         filename: "data_persistence_testnet.json",
         valconsPrefix: "persistencevalcons",
         denyListVals: [
