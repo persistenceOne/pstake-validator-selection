@@ -3,16 +3,7 @@ import {QueryClientImpl as StakingQuery} from "persistenceonejs/cosmos/staking/v
 import {QueryClientImpl as SlashingQuery,} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
 import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1/query.js"
 import {AllPaginatedQuery, CreateSigningClientFromAddress, parseJson, RpcClient, stringifyJson} from "./helper.js";
-import {
-    addresses,
-    chainInfos,
-    FN,
-    FNS, GOV_MODULE_ADDRESS,
-    HOST_CHAIN,
-    HOST_CHAINS,
-    LIQUIDSTAKEIBC_ADMIN,
-    LIQUIDSTAKEIBC_ADMIN_TESTNET
-} from "./constants.js";
+import {addresses, chainInfos, FN, FNS, GOV_MODULE_ADDRESS, HOST_CHAIN, HOST_CHAINS} from "./constants.js";
 import {assertIsDeliverTxSuccess, coins} from "@cosmjs/stargate";
 import {MsgSubmitProposal} from "cosmjs-types/cosmos/gov/v1/tx.js";
 import {MsgUpdateParams} from "persistenceonejs/pstake/liquidstake/v1beta1/tx.js";
@@ -30,7 +21,7 @@ import {
     FilterOnValidatorBond,
     FilterOnVotingPower,
     UpdateSigningInfosToValidators
-} from "./stkatom-update-valset-weights.js";
+} from "./filter.js";
 
 async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     const lsm = true
@@ -229,9 +220,9 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
                 value: MsgUpdateParams.encode(msgUpdateHostChainParams.value).finish()
             }],
             initialDeposit: coins(512000000, persistenceChainInfo.feeDenom),
-            metadata:"",
-            title:"Auto update stkxprt validator list in Params",
-            summary:"Runs output of Pstake validator selections from github actions."
+            metadata: "",
+            title: "Auto update stkxprt validator list in Params",
+            summary: "Runs output of Pstake validator selections from github actions."
         })
     }
     console.log("msg: ", JSON.stringify(msg))
