@@ -393,7 +393,7 @@ export const chainInfos = {
         prefix: "dydx",
         feeDenom: "adydx",
         gasPrice: GasPrice.fromString("0.005adydx"),
-        tmVersion: COMETBFT_VERSIONS.comet34,
+        tmVersion: COMETBFT_VERSIONS.comet38,
         pstakeConfig: pstakeHostValsetConfigs.dydx
     },
 
