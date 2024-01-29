@@ -42,7 +42,7 @@ import * as proto from "@cosmjs/proto-signing";
 async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
     const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
-    let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
+    //let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
 
     const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
@@ -127,15 +127,15 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     }
     console.log("filtered on slashing events")
 
-    // reject/ filter on validator bond, calculate scores
-    if (hostChain.hostChain.flags.lsm === true) {
-        try {
-            allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
-        } catch (e) {
-            throw e
-        }
-        console.log("filtered on validators bond")
-    }
+    // // reject/ filter on validator bond, calculate scores
+    // if (hostChain.hostChain.flags.lsm === true) {
+    //     try {
+    //         allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
+    //     } catch (e) {
+    //         throw e
+    //     }
+    //     console.log("filtered on validators bond")
+    // }
 
     // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up ( approx 180 requests )
     try {
@@ -162,7 +162,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     }
 
     for (let i = 0; i < allVals.length; i++) {
-        let valScore = CalculateValidatorFinalScore(allVals[i], cosmosChainInfo.pstakeConfig, hostChain.hostChain.flags.lsm)
+        let valScore = CalculateValidatorFinalScore(allVals[i], cosmosChainInfo.pstakeConfig, false)
         allVals[i].overAllValidatorScore = valScore
     }
 

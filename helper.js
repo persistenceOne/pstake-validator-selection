@@ -6,7 +6,7 @@ import {registry as liquidstakeibcRegistry} from "persistenceonejs/pstake/liquid
 import {registry as lscosmosRegistry} from "persistenceonejs/pstake/lscosmos/v1beta1/msgs.registry.js";
 import {registry as govv1Registry} from "persistenceonejs/cosmos/gov/v1/tx.registry.js";
 import {COMETBFT_VERSIONS, MNEMONIC} from "./constants.js";
-import {Long} from "cosmjs-types/helpers";
+import {Long} from "cosmjs-types/helpers.js";
 import {fromBase64, fromBech32, toBech32} from "@cosmjs/encoding";
 import {sha256} from "@cosmjs/crypto";
 import {buildQuery} from "@cosmjs/tendermint-rpc/build/tendermint34/requests.js";

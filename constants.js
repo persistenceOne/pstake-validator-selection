@@ -142,7 +142,7 @@ export const pstakeHostValsetConfigs = {
             blocksWindow: 10000,
         },
         gov: {
-            lastNDays: 180,
+            lastNDays: 69,
             min: 0.6,
             max: 1,
             weight: 0.4,
@@ -158,10 +158,10 @@ export const pstakeHostValsetConfigs = {
             max: 9500,
         },
         timeInActiveSet: {
-            lastNDays: 180,
+            lastNDays: 30,
         },
         slashingEvents: {
-            lastNDays: 180,
+            lastNDays: 30,
             max: 0
         }
     },
@@ -352,7 +352,7 @@ export const pstakeHostValsetConfigs = {
 }
 export const chainInfos = {
     persistence: {
-        rpc: "https://rpc.core.persistence.one:443",
+        rpc: "https://r-persistence-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         chainID: "core-1",
         prefix: "persistence",
         feeDenom: "uxprt",
@@ -393,7 +393,7 @@ export const chainInfos = {
         prefix: "dydx",
         feeDenom: "adydx",
         gasPrice: GasPrice.fromString("0.005adydx"),
-        tmVersion: COMETBFT_VERSIONS.comet34,
+        tmVersion: COMETBFT_VERSIONS.comet38,
         pstakeConfig: pstakeHostValsetConfigs.dydx
     },
 
