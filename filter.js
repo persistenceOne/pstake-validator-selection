@@ -11,6 +11,8 @@ import {Decimal} from "@cosmjs/math";
 import {ProposalStatus} from "cosmjs-types/cosmos/gov/v1beta1/gov.js";
 import {fromTimestamp} from "cosmjs-types/helpers.js";
 import * as proto from "@cosmjs/proto-signing";
+import {SMARTSTAKE_ACCESS_KEY} from "./constants.js";
+import fetch from 'node-fetch';
 
 export function FilterDenyList(validators, denylist, reason = {name: "denylist", description: "Is part of deny list"}) {
     for (let i = 0; i < validators.length; i++) {
@@ -386,3 +388,88 @@ export async function BlockNDaysAgo(queryClient, N) {
 
     return [+blockNAgo.toFixed(0), blockNow.block.header.height]
 }
+
+///////////////// Filter using smartstake api.///////////////////////////
+
+export async function QuerySmartStakeAPI(appName, days) {
+    let URL = `https://7nkwv3z5t1.execute-api.us-east-1.amazonaws.com/prod/valperf?app=${appName}&accessKey=${SMARTSTAKE_ACCESS_KEY}&days=${days}`
+    let resp = await fetch(URL)
+    return resp.json()
+}
+
+export async function SmartStakeFilterOnGov(appName, validators, govConfig, hostChainPrefix, reason = {
+    name: "governance participation", description: ""
+}) {
+
+    let allValsForGov = await QuerySmartStakeAPI(appName, govConfig.lastNDays)
+
+    // ideally should be equal to totalCompleteProposals, but since archival node might not have all data.
+    // we choose max by any validator and take % out of it
+    // let maxVoted = totalCompleteProposals.length
+    let maxVoted = 0
+    for (let i = 0; i < allValsForGov.length; i++) {
+        if (allValsForGov[i].proposals.length > maxVoted) {
+            maxVoted = allValsForGov[i].proposals.length
+        }
+    }
+    for (let i = 0; i < validators.length; i++) {
+        let numVoted = 0
+        for (let govVals of allValsForGov) {
+            if (validators[i].valoper === govVals.operatorAddress) {
+                // percentVoted = govVals.proposals.length
+                for (let j = 0; j < govVals.proposals.length; j++) {
+                    if (govVals.proposals[j].voteOption !== null) {
+                        numVoted++
+                    }
+                }
+            }
+        }
+        let percentVoted = numVoted / maxVoted
+        if (maxVoted === 0) {
+            // handle 0 totalcountproposals case, if no gov proposals
+            validators[i].govScore = 100
+        } else {
+            if (percentVoted < govConfig.min) {
+                validators[i].deny = true
+                let submitReason = {}
+                submitReason.name = reason.name
+                submitReason.description = `Required between ${govConfig.min} and ${govConfig.max} , found ${percentVoted} `
+                validators[i].denyReason.push(submitReason)
+            } else {
+                //calculate score
+                validators[i].govScore = CalculateScore(percentVoted, govConfig.min, govConfig.max, govConfig.min)
+            }
+        }
+    }
+    return validators
+}
+
+export async function SmartStakeFilterOnUptime(appName, validators, uptimeConfig, reason = {
+    name: "uptime",
+    description: ""
+}) {
+    let uptimeDaysAPI = await QuerySmartStakeAPI(appName, uptimeConfig.lastNDays)
+    for (let i = 0; i < validators.length; i++) {
+        let valUptime = validators[i].validator.uptime
+        for (let vals of uptimeDaysAPI) {
+            if (vals.operatorAddress === validators[i].valoper) {
+                valUptime = vals.uptime
+                break
+            }
+        }
+
+        if (valUptime < uptimeConfig.min) {
+            validators[i].deny = true
+            let submitReason = {}
+            submitReason.name = reason.name
+            submitReason.description = `Required to be greater than ${uptimeConfig.min}, found ${valUptime} `
+            validators[i].denyReason.push(submitReason)
+        } else {
+            //calculate score
+            validators[i].uptimeScore = CalculateScore(valUptime, uptimeConfig.min, uptimeConfig.max, uptimeConfig.min)
+        }
+    }
+    return validators
+}
+
+////////////// Filter using smartstake api ///////////////////////

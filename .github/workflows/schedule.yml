@@ -8,6 +8,9 @@ on:
     #    - cron: '0 10 * * *' # pre testnet epoch
     - cron: '0 */6 * * *' # every 3 hours
 
+env:
+  SMARTSTAKE_ACCESS_KEY: ${{ secrets.SMARTSTAKE_ACCESS_KEY }}
+
 jobs:
   liquidstakeibc-cosmos-valset:
     #    if: github.event.schedule == '55 12 * * *'
@@ -29,13 +32,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run get data to make weights
-        run: npm run update-stkatom-valset-weights
+        run: npm run smartstake-update-valset-weights
         env:
           MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "cosmos"
 #      - name: Run do txn
-#        run: npm run update-stkatom-valset-weights
+#        run: npm run smartstake-update-valset-weights
 #        env:
 #          MNEMONIC: ${{ secrets.MNEMONIC }}
 #          FN: "DO_TX"
@@ -61,13 +64,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run get data to make weights
-        run: npm run update-stkatom-valset-weights
+        run: npm run smartstake-update-valset-weights
         env:
           MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "osmosis"
       - name: Run do txn
-        run: npm run update-stkatom-valset-weights
+        run: npm run smartstake-update-valset-weights
         env:
           MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "DO_TX"
