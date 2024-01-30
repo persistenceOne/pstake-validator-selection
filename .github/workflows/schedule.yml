@@ -37,12 +37,12 @@ jobs:
           MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "cosmos"
-      - name: Run do txn
-        run: npm run smartstake-update-valset-weights
-        env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
-          FN: "DO_TX"
-          HOST_CHAIN: "cosmos"
+#      - name: Run do txn
+#        run: npm run smartstake-update-valset-weights
+#        env:
+#          MNEMONIC: ${{ secrets.MNEMONIC }}
+#          FN: "DO_TX"
+#          HOST_CHAIN: "cosmos"
 
   liquidstakeibc-osmosis-valset:
     if: github.event.schedule == '55 12 * * *'
