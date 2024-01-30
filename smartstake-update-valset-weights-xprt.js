@@ -1,4 +1,3 @@
-import {QueryClientImpl as PstakeQuery} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/query.js"
 import {QueryClientImpl as StakingQuery} from "persistenceonejs/cosmos/staking/v1beta1/query.js"
 import {QueryClientImpl as SlashingQuery,} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
 import {QueryClientImpl as PstakeXprtQuery} from "persistenceonejs/pstake/liquidstake/v1beta1/query.js"
@@ -23,9 +22,6 @@ import {
 } from "./filter.js";
 
 async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
-    const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
-    const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
-    let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
     const lsm = true
 
     const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
@@ -59,7 +55,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
         allVals.push(valmap)
 
     }
-    console.log(allVals.length)
+    console.log(allVals.length, "validators")
     console.log("update all validators")
 
     allVals = await UpdateSigningInfosToValidators(cosmosSlashingClient, allVals, cosmosChainInfo.pstakeConfig.valconsPrefix)
