@@ -146,7 +146,7 @@ export const pstakeHostValsetConfigs = {
             blocksWindow: 10000,
         },
         gov: {
-            lastNDays: 180,
+            lastNDays: 30,
             min: 0.6,
             max: 1,
             weight: 0.4,
@@ -162,10 +162,10 @@ export const pstakeHostValsetConfigs = {
             max: 9500,
         },
         timeInActiveSet: {
-            lastNDays: 180,
+            lastNDays: 30,
         },
         slashingEvents: {
-            lastNDays: 180,
+            lastNDays: 30,
             max: 0
         }
     },
