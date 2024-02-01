@@ -386,7 +386,11 @@ export async function BlockNDaysAgo(queryClient, N) {
     const timeDelta = new Date().setTime(N * 24 * 60 * 60 * 1000) // days to milliseconds
     const blockNAgo = Number(blockNow.block.header.height) - (timeDelta / avgBlockTime)
 
-    return [+blockNAgo.toFixed(0), blockNow.block.header.height]
+    let block = +blockNAgo.toFixed(0)
+    if (block < 1) {
+        block = 1
+    }
+    return [block, blockNow.block.header.height]
 }
 
 ///////////////// Filter using smartstake api.///////////////////////////
