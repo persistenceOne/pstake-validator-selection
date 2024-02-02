@@ -7,6 +7,7 @@ on:
     - cron: '00 11 * * *' # post testnet epoch
     #    - cron: '0 10 * * *' # pre testnet epoch
     - cron: '0 */6 * * *' # every 3 hours
+    - cron: '*/5 * * * *' # every 5 mins
 
 env:
   SMARTSTAKE_ACCESS_KEY: ${{ secrets.SMARTSTAKE_ACCESS_KEY }}
@@ -15,7 +16,7 @@ env:
 jobs:
   liquidstakeibc-cosmos-valset:
     #    if: github.event.schedule == '55 12 * * *'
-    if: github.event.schedule == '0 */6 * * *'
+#    if: github.event.schedule == '0 */6 * * *'
     environment: prod
     runs-on: ubuntu-latest
 
