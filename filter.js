@@ -397,8 +397,9 @@ export async function BlockNDaysAgo(queryClient, N) {
 
 export async function QuerySmartStakeAPI(appName, days) {
     let URL = `https://7nkwv3z5t1.execute-api.us-east-1.amazonaws.com/prod/valperf?app=${appName}&accessKey=${SMARTSTAKE_ACCESS_KEY}&days=${days}`
-    let resp = await fetch(URL)
-    return await resp.json()
+    const resp = await fetch(URL)
+    const jsonresp = await resp.json()
+    return jsonresp
 }
 
 export async function SmartStakeFilterOnGov(appName, validators, govConfig, hostChainPrefix, reason = {
