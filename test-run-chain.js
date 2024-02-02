@@ -2,8 +2,8 @@ import {QueryClientImpl as StakingQuery} from "persistenceonejs/cosmos/staking/v
 import {QueryClientImpl as SlashingQuery,} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
 import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1beta1/query.js"
 import {QueryClientImpl as GovV1Query} from "cosmjs-types/cosmos/gov/v1/query.js"
-import {AllPaginatedQuery, RpcClient, stringifyJson} from "./helper.js";
-import {chainInfos, COMETBFT_VERSIONS} from "./constants.js";
+import {AllPaginatedQuery, CreateSigningClientFromAddress, parseJson, RpcClient, stringifyJson} from "./helper.js";
+import {addresses, chainInfos, COMETBFT_VERSIONS, GOV_MODULE_ADDRESS} from "./constants.js";
 import {BondStatus, bondStatusToJSON} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
 import * as fs from "fs";
 import {
@@ -18,6 +18,7 @@ import {
     FilterOnVotingPower,
     UpdateSigningInfosToValidators
 } from "./filter.js";
+import {assertIsDeliverTxSuccess, coins} from "@cosmjs/stargate";
 
 async function GetTestHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
@@ -160,4 +161,14 @@ async function GetTestHostChainValSetData(persistenceChainInfo, cosmosChainInfo)
     return
 }
 
+async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, granteePersistenceAddr, AuthzGranterAddr) {
+
+    const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
+    const bal = await signingPersistenceClient.getBalance(granteePersistenceAddr.address)
+    console.log(bal)
+    const response = await signingPersistenceClient.sendTokens(granteePersistenceAddr.address,granteePersistenceAddr.address, coins(1,"uxprt"))
+    console.log(JSON.stringify(response))
+    assertIsDeliverTxSuccess(response)
+}
+TxUpdateValsetWeights(chainInfos.persistence, chainInfos.persistence, addresses.liquidStakeIBC, GOV_MODULE_ADDRESS).then(r => console.log("SUCCESS")).catch(e => console.error(e))
 // GetTestHostChainValSetData(chainInfos.persistence, chainInfos.osmosis).then(r => console.log("SUCCESS")).catch(e => console.error(e))

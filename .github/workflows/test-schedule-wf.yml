@@ -23,15 +23,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run get data to make weights
-        run: npm run smartstake-update-valset-weights
+        run: npm run test-run-chain
         env:
           MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
-          HOST_CHAIN: "osmosis"
-      - name: Run do txn
-        run: npm run smartstake-update-valset-weights
-        env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
-          FN: "DO_TX"
-          HOST_CHAIN: "osmosis"
+          HOST_CHAIN: "dydx"
+#      - name: Run do txn
+#        run: npm run smartstake-update-valset-weights
+#        env:
+#          MNEMONIC: ${{ secrets.MNEMONIC }}
+#          FN: "DO_TX"
+#          HOST_CHAIN: "dydx"
 
