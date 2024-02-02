@@ -10,6 +10,7 @@ on:
 
 env:
   SMARTSTAKE_ACCESS_KEY: ${{ secrets.SMARTSTAKE_ACCESS_KEY }}
+  MNEMONIC: ${{ secrets.MNEMONIC }}
 
 jobs:
   liquidstakeibc-cosmos-valset:
@@ -35,13 +36,11 @@ jobs:
       - name: Run get data to make weights
         run: npm run smartstake-update-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "cosmos"
 #      - name: Run do txn
 #        run: npm run smartstake-update-valset-weights
 #        env:
-#          MNEMONIC: ${{ secrets.MNEMONIC }}
 #          FN: "DO_TX"
 #          HOST_CHAIN: "cosmos"
 
@@ -68,13 +67,11 @@ jobs:
       - name: Run get data to make weights
         run: npm run smartstake-update-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "osmosis"
       - name: Run do txn
         run: npm run smartstake-update-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "DO_TX"
           HOST_CHAIN: "osmosis"
 
@@ -101,15 +98,13 @@ jobs:
       - name: Run get data to make weights
         run: npm run smartstake-update-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "dydx"
-#      - name: Run do txn
-#        run: npm run smartstake-update-valset-weights
-#        env:
-#          MNEMONIC: ${{ secrets.MNEMONIC }}
-#          FN: "DO_TX"
-#          HOST_CHAIN: "dydx"
+      - name: Run do txn
+        run: npm run smartstake-update-valset-weights
+        env:
+          FN: "DO_TX"
+          HOST_CHAIN: "dydx"
 
   liquidstakeibc-persistence-valset:
     #    if: github.event.schedule == '55 12 * * *'
@@ -134,13 +129,11 @@ jobs:
       - name: Run get data to make weights
         run: npm run smartstake-update-valset-weights-xprt
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "persistence"
 #      - name: Run do txn
 #        run: npm run smartstake-update-valset-weights-xprt
 #        env:
-#          MNEMONIC: ${{ secrets.MNEMONIC }}
 #          FN: "DO_TX"
 #          HOST_CHAIN: "persistence"
 
@@ -167,13 +160,11 @@ jobs:
       - name: Run get data to make weights
         run: npm run update-stkatom-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "cosmosTestnet"
       - name: Run do txn
         run: npm run update-stkatom-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "DO_TX"
           HOST_CHAIN: "cosmosTestnet"
 
@@ -200,13 +191,11 @@ jobs:
       - name: Run get data to make weights
         run: npm run update-stkatom-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "osmosisTestnet"
       - name: Run do txn
         run: npm run update-stkatom-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "DO_TX"
           HOST_CHAIN: "osmosisTestnet"
 
@@ -233,13 +222,11 @@ jobs:
       - name: Run get data to make weights
         run: npm run update-stkxprt-valset-weights
         env:
-          MNEMONIC: ${{ secrets.MNEMONIC }}
           FN: "GET_DATA"
           HOST_CHAIN: "persistenceTestnet"
 #      - name: Run do txn
 #        run: npm run update-stkxprt-valset-weights
 #        env:
-#          MNEMONIC: ${{ secrets.MNEMONIC }}
 #          FN: "DO_TX"
 #          HOST_CHAIN: "persistenceTestnet"
 
