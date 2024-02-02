@@ -7,7 +7,6 @@ on:
     - cron: '00 11 * * *' # post testnet epoch
     #    - cron: '0 10 * * *' # pre testnet epoch
     - cron: '0 */6 * * *' # every 3 hours
-    - cron: '*/5 * * * *' # every 5 mins
 
 env:
   SMARTSTAKE_ACCESS_KEY: ${{ secrets.SMARTSTAKE_ACCESS_KEY }}
@@ -16,7 +15,7 @@ env:
 jobs:
   liquidstakeibc-cosmos-valset:
     #    if: github.event.schedule == '55 12 * * *'
-#    if: github.event.schedule == '0 */6 * * *'
+    if: github.event.schedule == '0 */6 * * *'
     environment: prod
     runs-on: ubuntu-latest
 
@@ -39,15 +38,15 @@ jobs:
         env:
           FN: "GET_DATA"
           HOST_CHAIN: "cosmos"
-#      - name: Run do txn
-#        run: npm run smartstake-update-valset-weights
-#        env:
-#          FN: "DO_TX"
-#          HOST_CHAIN: "cosmos"
+  #      - name: Run do txn
+  #        run: npm run smartstake-update-valset-weights
+  #        env:
+  #          FN: "DO_TX"
+  #          HOST_CHAIN: "cosmos"
 
   liquidstakeibc-osmosis-valset:
     if: github.event.schedule == '55 12 * * *'
-#    if: github.event.schedule == '0 */6 * * *'
+    #    if: github.event.schedule == '0 */6 * * *'
     environment: prod
     runs-on: ubuntu-latest
 
@@ -132,14 +131,14 @@ jobs:
         env:
           FN: "GET_DATA"
           HOST_CHAIN: "persistence"
-#      - name: Run do txn
-#        run: npm run smartstake-update-valset-weights-xprt
-#        env:
-#          FN: "DO_TX"
-#          HOST_CHAIN: "persistence"
+  #      - name: Run do txn
+  #        run: npm run smartstake-update-valset-weights-xprt
+  #        env:
+  #          FN: "DO_TX"
+  #          HOST_CHAIN: "persistence"
 
   liquidstakeibc-cosmos-testnet-valset:
-#    if: github.event.schedule == '00 11 * * *'
+    #    if: github.event.schedule == '00 11 * * *'
     if: github.event.schedule == '0 */6 * * *'
     environment: prod
     runs-on: ubuntu-latest
@@ -170,7 +169,7 @@ jobs:
           HOST_CHAIN: "cosmosTestnet"
 
   liquidstakeibc-osmosis-testnet-valset:
-#    if: github.event.schedule == '00 11 * * *'
+    #    if: github.event.schedule == '00 11 * * *'
     if: github.event.schedule == '0 */6 * * *'
     environment: prod
     runs-on: ubuntu-latest
