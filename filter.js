@@ -399,6 +399,7 @@ export async function QuerySmartStakeAPI(appName, days) {
     let URL = `https://7nkwv3z5t1.execute-api.us-east-1.amazonaws.com/prod/valperf?app=${appName}&accessKey=${SMARTSTAKE_ACCESS_KEY}&days=${days}`
     const resp = await fetch(URL)
     const jsonresp = await resp.json()
+    console.log(jsonresp)
     return jsonresp
 }
 
