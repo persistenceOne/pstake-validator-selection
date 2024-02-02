@@ -1,37 +1,41 @@
-import {QueryClientImpl as PstakeXprtQuery} from "persistenceonejs/pstake/liquidstake/v1beta1/query.js"
+import {QueryClientImpl as PstakeQuery} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/query.js"
 import {QueryClientImpl as StakingQuery} from "persistenceonejs/cosmos/staking/v1beta1/query.js"
 import {QueryClientImpl as SlashingQuery,} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
-import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1/query.js"
 import {AllPaginatedQuery, CreateSigningClientFromAddress, parseJson, RpcClient, stringifyJson} from "./helper.js";
-import {addresses, chainInfos, FN, FNS, GOV_MODULE_ADDRESS, HOST_CHAIN, HOST_CHAINS} from "./constants.js";
-import {assertIsDeliverTxSuccess, coins} from "@cosmjs/stargate";
-import {MsgSubmitProposal} from "cosmjs-types/cosmos/gov/v1/tx.js";
-import {MsgUpdateParams} from "persistenceonejs/pstake/liquidstake/v1beta1/tx.js";
-import {BondStatus, bondStatusToJSON} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
+import {addresses, chainInfos, FN, FNS, HOST_CHAIN, HOST_CHAINS, LIQUIDSTAKEIBC_ADMIN} from "./constants.js";
+import {assertIsDeliverTxSuccess} from "@cosmjs/stargate";
+import {MsgExec} from "cosmjs-types/cosmos/authz/v1beta1/tx.js";
+import {MsgUpdateHostChain} from "persistenceonejs/pstake/liquidstakeibc/v1beta1/msgs.js";
 import * as fs from "fs";
 import {
     CalculateValidatorFinalScore,
     FilterDenyList,
     FilterOnBlocksMissed,
     FilterOnCommission,
-    FilterOnGov,
     FilterOnSlashingEvents,
     FilterOnTimeActiveSet,
-    FilterOnUptime,
     FilterOnValidatorBond,
     FilterOnVotingPower,
+    SmartStakeFilterOnGov,
+    SmartStakeFilterOnUptime,
     UpdateSigningInfosToValidators
 } from "./filter.js";
+import {BondStatus, bondStatusToJSON} from "cosmjs-types/cosmos/staking/v1beta1/staking.js";
 
 async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
-    const lsm = true
+    const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
+    const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
+    let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
 
     const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
-    const cosmosGovClient = new GovQuery(cosmosRpcClient)
     const cosmosSlashingClient = new SlashingQuery(cosmosRpcClient)
 
-    // query all bonded vals
+    let appName = cosmosChainInfo.pstakeConfig.smartStakeApiAppName
+    if (appName === "") {
+        throw new Error("appName not found for chain-id " + cosmosChainInfo.chainID)
+    }
+    // // query all bonded vals
     let allValsBonded = await AllPaginatedQuery(cosmosStakingClient.Validators, {status: bondStatusToJSON(BondStatus.BOND_STATUS_BONDED)}, "validators")
 
     // put it into struct that has all info
@@ -40,8 +44,6 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
         let valmap = {
             valoper: validator.operatorAddress,
             validator: validator,
-            signingInfo: {},
-            proposalsVoted: [],
             deny: false,
             denyReason: [],
             commissionScore: 0,
@@ -51,10 +53,12 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
             validatorBondScore: 0,
             overAllValidatorScore: 0,
             weight: 0,
-            moniker: validator.description.moniker,
+            moniker: validator.name,
         }
         allVals.push(valmap)
+
     }
+    console.log(allVals.length)
     console.log("update all validators")
 
     allVals = await UpdateSigningInfosToValidators(cosmosSlashingClient, allVals, cosmosChainInfo.pstakeConfig.valconsPrefix)
@@ -109,8 +113,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     console.log("filtered on slashing events")
 
     // reject/ filter on validator bond, calculate scores
-    // persistence by default has LSM live
-    if (lsm) {
+    if (hostChain.hostChain.flags.lsm === true) {
         try {
             allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
         } catch (e) {
@@ -121,7 +124,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
     // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up ( approx 180 requests )
     try {
-        allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+        allVals = await SmartStakeFilterOnGov(appName, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
     } catch (e) {
         throw e
     }
@@ -129,7 +132,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
     // reject/filter on uptime, calculate scores, this might fail if rpc gives up (approx 180 * Ndays requests )
     try {
-        allVals = await FilterOnUptime(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.uptime, cosmosChainInfo.pstakeConfig.valconsPrefix)
+        allVals = await SmartStakeFilterOnUptime(appName, allVals, cosmosChainInfo.pstakeConfig.uptime)
         console.log("filtered on uptime")
     } catch (e) {
         // most likely to fail, just score them all 100 if this is the case.
@@ -140,7 +143,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     }
 
     for (let i = 0; i < allVals.length; i++) {
-        let valScore = CalculateValidatorFinalScore(allVals[i], cosmosChainInfo.pstakeConfig, lsm)
+        let valScore = CalculateValidatorFinalScore(allVals[i], cosmosChainInfo.pstakeConfig, hostChain.hostChain.flags.lsm)
         allVals[i].overAllValidatorScore = valScore
     }
 
@@ -164,12 +167,54 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     return
 }
 
+// DUPLICATE FROM stkatom-update-valset-weights
 async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, granteePersistenceAddr, AuthzGranterAddr) {
     const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
-    const pstakeQueryClient = new PstakeXprtQuery(persistenceRpcClient)
-    let hostChainParams = await pstakeQueryClient.Params()
+    const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
+    let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
 
     let allVals = parseJson(fs.readFileSync(cosmosChainInfo.pstakeConfig.filename))
+
+    // Find validators which are not yet part of pstake validators
+    let add_vals = []
+    for (let i = 0; i < allVals.length; i++) {
+        if (allVals[i].deny === true) {
+            continue
+        }
+        let found = false
+        for (let j = 0; j < hostChain.hostChain.validators.length; j++) {
+            if (allVals[i].valoper === hostChain.hostChain.validators[j].operatorAddress) {
+                found = true
+            }
+        }
+        if (!found) {
+            add_vals.push(allVals[i].valoper)
+        }
+    }
+
+    let kvUpdates = []
+    // add kv updates to add_validators
+    for (let i = 0; i < add_vals.length; i++) {
+        kvUpdates.push({
+            key: "add_validator", value: JSON.stringify({
+                operator_address: add_vals[i],
+                status: "BOND_STATUS_UNSPECIFIED",
+                weight: "0",
+                delegated_amount: "0",
+                exchange_rate: "1",
+                delegable: !hostChain.hostChain.flags.lsm
+            })
+        })
+        kvUpdates.push({
+            key: "validator_update", value: add_vals[i]
+        })
+    }
+    // reset weights to zero
+    for (let i = 0; i < hostChain.hostChain.validators.length; i++) {
+        kvUpdates.push({
+            key: "validator_weight", value: `${hostChain.hostChain.validators[i].operatorAddress},0`
+        })
+    }
 
     // add kv updates to set weight
     let nonZeroVals = []
@@ -184,7 +229,6 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
     }
     // add to check if sum of weights is 1.
     let sum = 0
-    let kvUpdates = []
     for (let i = 0; i < nonZeroVals.length; i++) {
         // to scratch float approximations
         if (i === nonZeroVals.length - 1) {
@@ -192,37 +236,28 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
         }
         sum = sum + nonZeroVals[i].weight
         kvUpdates.push({
-            validatorAddress: nonZeroVals[i].valoper, targetWeight: nonZeroVals[i].weight.toString()
+            key: "validator_weight", value: `${nonZeroVals[i].valoper},${nonZeroVals[i].weight}`
         })
     }
 
-    let newHostChainParams = hostChainParams.params
-    newHostChainParams.whitelistedValidators = kvUpdates
-
-    if (kvUpdates.length <= 0) {
+    if (kvUpdates.length <= hostChain.hostChain.validators.length) {
         console.log("no kv updates, total kv updates:", kvUpdates.length)
         return
     } else {
         console.log("total kv updates:", kvUpdates.length)
     }
-    const msgUpdateHostChainParams = {
-        typeUrl: "/pstake.liquidstake.v1beta1.MsgUpdateParams", value: MsgUpdateParams.fromPartial({
-            authority: AuthzGranterAddr, params: newHostChainParams
+    const msgUpdateHostChain = {
+        typeUrl: "/pstake.liquidstakeibc.v1beta1.MsgUpdateHostChain", value: MsgUpdateHostChain.fromPartial({
+            authority: AuthzGranterAddr, chainId: cosmosChainInfo.chainID, updates: kvUpdates
         })
     }
-    console.log(JSON.stringify(msgUpdateHostChainParams))
+    console.log(JSON.stringify(msgUpdateHostChain))
 
     const msg = {
-        typeUrl: "/cosmos.gov.v1.MsgSubmitProposal", value: MsgSubmitProposal.fromPartial({
-            proposer: granteePersistenceAddr.address,
-            messages: [{
-                typeUrl: msgUpdateHostChainParams.typeUrl,
-                value: MsgUpdateParams.encode(msgUpdateHostChainParams.value).finish()
-            }],
-            initialDeposit: coins(512000000, persistenceChainInfo.feeDenom),
-            metadata: "",
-            title: "Auto update stkxprt validator list in Params",
-            summary: "Runs output of Pstake validator selections from github actions."
+        typeUrl: "/cosmos.authz.v1beta1.MsgExec", value: MsgExec.fromPartial({
+            grantee: granteePersistenceAddr.address, msgs: [{
+                typeUrl: msgUpdateHostChain.typeUrl, value: MsgUpdateHostChain.encode(msgUpdateHostChain.value).finish()
+            }]
         })
     }
     console.log("msg: ", JSON.stringify(msg))
@@ -235,10 +270,12 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
 
 async function UpdateValsetWeights() {
     console.log(HOST_CHAIN, FN)
-    if (HOST_CHAIN === HOST_CHAINS.persistenceTestnet) {
-        return await Fn(chainInfos.persistenceTestnet, chainInfos.persistenceTestnet, addresses.liquidStakeIBCTestnet, GOV_MODULE_ADDRESS)
-    } else if (HOST_CHAIN === HOST_CHAINS.persistence) {
-        return await Fn(chainInfos.persistence, chainInfos.persistence, addresses.liquidStakeIBC, GOV_MODULE_ADDRESS)
+    if (HOST_CHAIN === HOST_CHAINS.cosmos) {
+        return await Fn(chainInfos.persistence, chainInfos.cosmos, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
+    } else if (HOST_CHAIN === HOST_CHAINS.osmosis) {
+        return await Fn(chainInfos.persistence, chainInfos.osmosis, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
+    } else if (HOST_CHAIN === HOST_CHAINS.dydx) {
+        return await Fn(chainInfos.persistence, chainInfos.dydx, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
     }
 }
 

@@ -1,25 +1,23 @@
-import {QueryClientImpl as PstakeXprtQuery} from "persistenceonejs/pstake/liquidstake/v1beta1/query.js"
 import {QueryClientImpl as StakingQuery} from "persistenceonejs/cosmos/staking/v1beta1/query.js"
 import {QueryClientImpl as SlashingQuery,} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
-import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1/query.js"
+import {QueryClientImpl as PstakeXprtQuery} from "persistenceonejs/pstake/liquidstake/v1beta1/query.js"
+import {MsgUpdateParams} from "persistenceonejs/pstake/liquidstake/v1beta1/tx.js";
+import {BondStatus, bondStatusToJSON} from "cosmjs-types/cosmos/staking/v1beta1/staking.js";
 import {AllPaginatedQuery, CreateSigningClientFromAddress, parseJson, RpcClient, stringifyJson} from "./helper.js";
 import {addresses, chainInfos, FN, FNS, GOV_MODULE_ADDRESS, HOST_CHAIN, HOST_CHAINS} from "./constants.js";
 import {assertIsDeliverTxSuccess, coins} from "@cosmjs/stargate";
-import {MsgSubmitProposal} from "cosmjs-types/cosmos/gov/v1/tx.js";
-import {MsgUpdateParams} from "persistenceonejs/pstake/liquidstake/v1beta1/tx.js";
-import {BondStatus, bondStatusToJSON} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
 import * as fs from "fs";
 import {
     CalculateValidatorFinalScore,
     FilterDenyList,
     FilterOnBlocksMissed,
     FilterOnCommission,
-    FilterOnGov,
     FilterOnSlashingEvents,
     FilterOnTimeActiveSet,
-    FilterOnUptime,
     FilterOnValidatorBond,
     FilterOnVotingPower,
+    SmartStakeFilterOnGov,
+    SmartStakeFilterOnUptime,
     UpdateSigningInfosToValidators
 } from "./filter.js";
 
@@ -28,10 +26,13 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
     const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
-    const cosmosGovClient = new GovQuery(cosmosRpcClient)
     const cosmosSlashingClient = new SlashingQuery(cosmosRpcClient)
 
-    // query all bonded vals
+    let appName = cosmosChainInfo.pstakeConfig.smartStakeApiAppName
+    if (appName === "") {
+        throw new Error("appName not found for chain-id " + cosmosChainInfo.chainID)
+    }
+    // // query all bonded vals
     let allValsBonded = await AllPaginatedQuery(cosmosStakingClient.Validators, {status: bondStatusToJSON(BondStatus.BOND_STATUS_BONDED)}, "validators")
 
     // put it into struct that has all info
@@ -40,8 +41,6 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
         let valmap = {
             valoper: validator.operatorAddress,
             validator: validator,
-            signingInfo: {},
-            proposalsVoted: [],
             deny: false,
             denyReason: [],
             commissionScore: 0,
@@ -51,10 +50,12 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
             validatorBondScore: 0,
             overAllValidatorScore: 0,
             weight: 0,
-            moniker: validator.description.moniker,
+            moniker: validator.name,
         }
         allVals.push(valmap)
+
     }
+    console.log(allVals.length, "validators")
     console.log("update all validators")
 
     allVals = await UpdateSigningInfosToValidators(cosmosSlashingClient, allVals, cosmosChainInfo.pstakeConfig.valconsPrefix)
@@ -109,7 +110,6 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     console.log("filtered on slashing events")
 
     // reject/ filter on validator bond, calculate scores
-    // persistence by default has LSM live
     if (lsm) {
         try {
             allVals = await FilterOnValidatorBond(cosmosStakingClient, allVals, cosmosChainInfo.pstakeConfig.validatorBond)
@@ -121,7 +121,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
     // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up ( approx 180 requests )
     try {
-        allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+        allVals = await SmartStakeFilterOnGov(appName, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
     } catch (e) {
         throw e
     }
@@ -129,7 +129,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
     // reject/filter on uptime, calculate scores, this might fail if rpc gives up (approx 180 * Ndays requests )
     try {
-        allVals = await FilterOnUptime(cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.uptime, cosmosChainInfo.pstakeConfig.valconsPrefix)
+        allVals = await SmartStakeFilterOnUptime(appName, allVals, cosmosChainInfo.pstakeConfig.uptime)
         console.log("filtered on uptime")
     } catch (e) {
         // most likely to fail, just score them all 100 if this is the case.
@@ -163,6 +163,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     process.stdout.write(jsonString + "\n")
     return
 }
+
 
 async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, granteePersistenceAddr, AuthzGranterAddr) {
     const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
@@ -235,9 +236,7 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
 
 async function UpdateValsetWeights() {
     console.log(HOST_CHAIN, FN)
-    if (HOST_CHAIN === HOST_CHAINS.persistenceTestnet) {
-        return await Fn(chainInfos.persistenceTestnet, chainInfos.persistenceTestnet, addresses.liquidStakeIBCTestnet, GOV_MODULE_ADDRESS)
-    } else if (HOST_CHAIN === HOST_CHAINS.persistence) {
+    if (HOST_CHAIN === HOST_CHAINS.persistence) {
         return await Fn(chainInfos.persistence, chainInfos.persistence, addresses.liquidStakeIBC, GOV_MODULE_ADDRESS)
     }
 }

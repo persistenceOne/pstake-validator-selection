@@ -1,8 +1,9 @@
 import {QueryClientImpl as StakingQuery} from "persistenceonejs/cosmos/staking/v1beta1/query.js"
 import {QueryClientImpl as SlashingQuery,} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
 import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1beta1/query.js"
+import {QueryClientImpl as GovV1Query} from "cosmjs-types/cosmos/gov/v1/query.js"
 import {AllPaginatedQuery, RpcClient, stringifyJson} from "./helper.js";
-import {chainInfos} from "./constants.js";
+import {chainInfos, COMETBFT_VERSIONS} from "./constants.js";
 import {BondStatus, bondStatusToJSON} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
 import * as fs from "fs";
 import {
@@ -16,13 +17,14 @@ import {
     FilterOnUptime,
     FilterOnVotingPower,
     UpdateSigningInfosToValidators
-} from "./stkatom-update-valset-weights.js";
+} from "./filter.js";
 
 async function GetTestHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 
     const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
     const cosmosGovClient = new GovQuery(cosmosRpcClient)
+    const cosmosGovV1Client = new GovV1Query(cosmosRpcClient)
     const cosmosSlashingClient = new SlashingQuery(cosmosRpcClient)
 
     // query all bonded vals
@@ -112,8 +114,11 @@ async function GetTestHostChainValSetData(persistenceChainInfo, cosmosChainInfo)
 
     // reject/filter on Gov in last N days, calculate scores, this might fail if rpc gives up ( approx 180 requests )
     try {
-        allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
-    } catch (e) {
+        if (cosmosChainInfo.tmVersion === COMETBFT_VERSIONS.comet34) {
+            allVals = await FilterOnGov(cosmosGovClient, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+        } else {
+            allVals = await FilterOnGov(cosmosGovV1Client, cosmosTMClient, allVals, cosmosChainInfo.pstakeConfig.gov, cosmosChainInfo.prefix)
+        }    } catch (e) {
         throw e
     }
     console.log("filtered on gov")
