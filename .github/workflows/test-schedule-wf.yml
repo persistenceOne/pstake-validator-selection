@@ -7,7 +7,7 @@ on:
 jobs:
   liquidstakeibc-osmosis-valset:
     runs-on: ubuntu-latest
-
+    environment: prod
     strategy:
       matrix:
         node-version: [ 16.x ]
