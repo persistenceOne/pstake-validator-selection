@@ -15,6 +15,7 @@ jobs:
   liquidstakeibc-cosmos-valset:
     #    if: github.event.schedule == '55 12 * * *'
     if: github.event.schedule == '0 */6 * * *'
+    environment: prod
     runs-on: ubuntu-latest
 
     strategy:
@@ -47,6 +48,7 @@ jobs:
   liquidstakeibc-osmosis-valset:
     if: github.event.schedule == '55 12 * * *'
 #    if: github.event.schedule == '0 */6 * * *'
+    environment: prod
     runs-on: ubuntu-latest
 
     strategy:
@@ -79,6 +81,7 @@ jobs:
   liquidstakeibc-dydx-valset:
     if: github.event.schedule == '55 12 * * *'
     #    if: github.event.schedule == '0 */6 * * *'
+    environment: prod
     runs-on: ubuntu-latest
 
     strategy:
@@ -111,6 +114,7 @@ jobs:
   liquidstakeibc-persistence-valset:
     #    if: github.event.schedule == '55 12 * * *'
     if: github.event.schedule == '0 */6 * * *'
+    environment: prod
     runs-on: ubuntu-latest
 
     strategy:
@@ -143,6 +147,7 @@ jobs:
   liquidstakeibc-cosmos-testnet-valset:
 #    if: github.event.schedule == '00 11 * * *'
     if: github.event.schedule == '0 */6 * * *'
+    environment: prod
     runs-on: ubuntu-latest
 
     strategy:
@@ -175,6 +180,7 @@ jobs:
   liquidstakeibc-osmosis-testnet-valset:
 #    if: github.event.schedule == '00 11 * * *'
     if: github.event.schedule == '0 */6 * * *'
+    environment: prod
     runs-on: ubuntu-latest
 
     strategy:
@@ -207,6 +213,7 @@ jobs:
   liquidstakeibc-persistence-testnet-valset:
     #    if: github.event.schedule == '00 11 * * *'
     if: github.event.schedule == '0 */6 * * *'
+    environment: prod
     runs-on: ubuntu-latest
 
     strategy:
