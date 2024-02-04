@@ -2,7 +2,10 @@ name: Schedule
 
 on:
   schedule:
-    - cron: '55 12 * * *' # post mainnet epoch
+    - cron: '55 12 * * *' # post mainnet epoch for osmosis
+    - cron: '00 13 * * *' # post mainnet epoch for dydx
+    - cron: '05 13 * * *' # post mainnet epoch for cosmoshub
+    - cron: '10 13 * * *' # post mainnet epoch for persistence
     #    - cron: '00 12 * * *' # pre mainnet epoch
     - cron: '00 11 * * *' # post testnet epoch
     #    - cron: '0 10 * * *' # pre testnet epoch
@@ -14,7 +17,7 @@ env:
 
 jobs:
   liquidstakeibc-cosmos-valset:
-    #    if: github.event.schedule == '55 12 * * *'
+    #    if: github.event.schedule == '05 13 * * *'
     if: github.event.schedule == '0 */6 * * *'
     environment: prod
     runs-on: ubuntu-latest
@@ -76,7 +79,7 @@ jobs:
           HOST_CHAIN: "osmosis"
 
   liquidstakeibc-dydx-valset:
-    if: github.event.schedule == '55 12 * * *'
+    if: github.event.schedule == '00 13 * * *'
     #    if: github.event.schedule == '0 */6 * * *'
     environment: prod
     runs-on: ubuntu-latest
@@ -107,7 +110,7 @@ jobs:
           HOST_CHAIN: "dydx"
 
   liquidstakeibc-persistence-valset:
-    #    if: github.event.schedule == '55 12 * * *'
+    #    if: github.event.schedule == '10 13 * * *'
     if: github.event.schedule == '0 */6 * * *'
     environment: prod
     runs-on: ubuntu-latest
