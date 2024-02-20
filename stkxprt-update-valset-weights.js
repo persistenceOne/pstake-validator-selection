@@ -1,12 +1,18 @@
-import {QueryClientImpl as PstakeXprtQuery} from "persistenceonejs/pstake/liquidstake/v1beta1/query.js"
 import {QueryClientImpl as StakingQuery} from "persistenceonejs/cosmos/staking/v1beta1/query.js"
 import {QueryClientImpl as SlashingQuery,} from "persistenceonejs/cosmos/slashing/v1beta1/query.js"
 import {QueryClientImpl as GovQuery} from "cosmjs-types/cosmos/gov/v1/query.js"
 import {AllPaginatedQuery, CreateSigningClientFromAddress, parseJson, RpcClient, stringifyJson} from "./helper.js";
-import {addresses, chainInfos, FN, FNS, GOV_MODULE_ADDRESS, HOST_CHAIN, HOST_CHAINS} from "./constants.js";
-import {assertIsDeliverTxSuccess, coins} from "@cosmjs/stargate";
-import {MsgSubmitProposal} from "cosmjs-types/cosmos/gov/v1/tx.js";
-import {MsgUpdateParams} from "persistenceonejs/pstake/liquidstake/v1beta1/tx.js";
+import {
+    addresses,
+    chainInfos,
+    FN,
+    FNS,
+    HOST_CHAIN,
+    HOST_CHAINS, LIQUIDSTAKE_ADMIN,
+    LIQUIDSTAKE_ADMIN_TESTNET
+} from "./constants.js";
+import {assertIsDeliverTxSuccess} from "@cosmjs/stargate";
+import {MsgUpdateWhitelistedValidators} from "persistenceonejs/pstake/liquidstake/v1beta1/tx.js";
 import {BondStatus, bondStatusToJSON} from "persistenceonejs/cosmos/staking/v1beta1/staking.js";
 import * as fs from "fs";
 import {
@@ -22,6 +28,7 @@ import {
     FilterOnVotingPower,
     UpdateSigningInfosToValidators
 } from "./filter.js";
+import {MsgExec} from "persistenceonejs/cosmos/authz/v1beta1/tx.js";
 
 async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     const lsm = true
@@ -155,7 +162,7 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
         if (allVals[i].deny === true) {
             continue
         }
-        allVals[i].weight = +(allVals[i].overAllValidatorScore / totalDenom).toFixed(10)
+        allVals[i].weight = +(allVals[i].overAllValidatorScore / totalDenom).toFixed(4)
     }
 
     const jsonString = stringifyJson(allVals)
@@ -165,10 +172,6 @@ async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
 }
 
 async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, granteePersistenceAddr, AuthzGranterAddr) {
-    const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
-    const pstakeQueryClient = new PstakeXprtQuery(persistenceRpcClient)
-    let hostChainParams = await pstakeQueryClient.Params()
-
     let allVals = parseJson(fs.readFileSync(cosmosChainInfo.pstakeConfig.filename))
 
     // add kv updates to set weight
@@ -192,12 +195,9 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
         }
         sum = sum + nonZeroVals[i].weight
         kvUpdates.push({
-            validatorAddress: nonZeroVals[i].valoper, targetWeight: nonZeroVals[i].weight.toString()
+            validatorAddress: nonZeroVals[i].valoper, targetWeight: (nonZeroVals[i].weight * 10000).toFixed(0)
         })
     }
-
-    let newHostChainParams = hostChainParams.params
-    newHostChainParams.whitelistedValidators = kvUpdates
 
     if (kvUpdates.length <= 0) {
         console.log("no kv updates, total kv updates:", kvUpdates.length)
@@ -205,26 +205,23 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
     } else {
         console.log("total kv updates:", kvUpdates.length)
     }
-    const msgUpdateHostChainParams = {
-        typeUrl: "/pstake.liquidstake.v1beta1.MsgUpdateParams", value: MsgUpdateParams.fromPartial({
-            authority: AuthzGranterAddr, params: newHostChainParams
+    const msgUpdateValidators = {
+        typeUrl: "/pstake.liquidstake.v1beta1.MsgUpdateWhitelistedValidators",
+        value: MsgUpdateWhitelistedValidators.fromPartial({
+            authority: AuthzGranterAddr, whitelistedValidators: kvUpdates
         })
     }
-    console.log(JSON.stringify(msgUpdateHostChainParams))
+    console.log(JSON.stringify(msgUpdateValidators))
 
     const msg = {
-        typeUrl: "/cosmos.gov.v1.MsgSubmitProposal", value: MsgSubmitProposal.fromPartial({
-            proposer: granteePersistenceAddr.address,
-            messages: [{
-                typeUrl: msgUpdateHostChainParams.typeUrl,
-                value: MsgUpdateParams.encode(msgUpdateHostChainParams.value).finish()
-            }],
-            initialDeposit: coins(512000000, persistenceChainInfo.feeDenom),
-            metadata: "",
-            title: "Auto update stkxprt validator list in Params",
-            summary: "Runs output of Pstake validator selections from github actions."
+        typeUrl: "/cosmos.authz.v1beta1.MsgExec", value: MsgExec.fromPartial({
+            grantee: granteePersistenceAddr.address, msgs: [{
+                typeUrl: msgUpdateValidators.typeUrl,
+                value: MsgUpdateWhitelistedValidators.encode(msgUpdateValidators.value).finish()
+            }]
         })
     }
+
     console.log("msg: ", JSON.stringify(msg))
 
     const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
@@ -236,9 +233,9 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
 async function UpdateValsetWeights() {
     console.log(HOST_CHAIN, FN)
     if (HOST_CHAIN === HOST_CHAINS.persistenceTestnet) {
-        return await Fn(chainInfos.persistenceTestnet, chainInfos.persistenceTestnet, addresses.liquidStakeIBCTestnet, GOV_MODULE_ADDRESS)
+        return await Fn(chainInfos.persistenceTestnet, chainInfos.persistenceTestnet, addresses.liquidStakeIBCTestnet, LIQUIDSTAKE_ADMIN_TESTNET)
     } else if (HOST_CHAIN === HOST_CHAINS.persistence) {
-        return await Fn(chainInfos.persistence, chainInfos.persistence, addresses.liquidStakeIBC, GOV_MODULE_ADDRESS)
+        return await Fn(chainInfos.persistence, chainInfos.persistence, addresses.liquidStakeIBC, LIQUIDSTAKE_ADMIN)
     }
 }
 

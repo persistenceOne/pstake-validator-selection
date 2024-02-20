@@ -36,6 +36,6 @@
     "cosmjs-types": "^0.8.0",
     "dotenv": "^16.0.3",
     "node-fetch": "^3.3.2",
-    "persistenceonejs": "^2.4.0-rc0"
+    "persistenceonejs": "^2.4.0-rc1"
   }
 }
