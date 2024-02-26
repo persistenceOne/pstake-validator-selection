@@ -293,6 +293,8 @@ async function UpdateValsetWeights() {
         return await Fn(chainInfos.persistence, chainInfos.osmosis, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
     } else if (HOST_CHAIN === HOST_CHAINS.dydx) {
         return await Fn(chainInfos.persistence, chainInfos.dydx, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
+    } else if (HOST_CHAIN === HOST_CHAINS.stargaze) {
+        return await Fn(chainInfos.persistence, chainInfos.stargaze, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
     }
     // add more chain running on tm v34.
 }

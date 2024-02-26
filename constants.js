@@ -8,6 +8,7 @@ export const HOST_CHAINS = {
     cosmos: "cosmos",
     osmosis: "osmosis",
     dydx: "dydx",
+    stargaze: "stargaze",
     persistence: "persistence",
     cosmosTestnet: "cosmosTestnet",
     osmosisTestnet: "osmosisTestnet",
@@ -32,7 +33,7 @@ export const GOV_MODULE_ADDRESS = "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5
 
 export const pstakeHostValsetConfigs = {
     cosmos: {
-        smartStakeApiAppName : "ATOM",
+        smartStakeApiAppName: "ATOM",
         filename: "data_cosmos.json",
         valconsPrefix: "cosmosvalcons",
         denyListVals: [
@@ -88,7 +89,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     osmosis: {
-        smartStakeApiAppName : "OSMO",
+        smartStakeApiAppName: "OSMO",
         filename: "data_osmosis.json",
         valconsPrefix: "osmovalcons",
         denyListVals: [
@@ -131,7 +132,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     dydx: {
-        smartStakeApiAppName : "DYDX",
+        smartStakeApiAppName: "DYDX",
         filename: "data_dydx.json",
         valconsPrefix: "dydxvalcons",
         denyListVals: [
@@ -173,8 +174,51 @@ export const pstakeHostValsetConfigs = {
             max: 0
         }
     },
+    stargaze: {
+        smartStakeApiAppName: "STARS",
+        filename: "data_stargaze.json",
+        valconsPrefix: "starsvalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.20,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 3,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.15
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        }
+    },
     persistence: {
-        smartStakeApiAppName : "XPRT",
+        smartStakeApiAppName: "XPRT",
         filename: "data_persistence.json",
         valconsPrefix: "persistencevalcons",
         denyListVals: [
@@ -223,7 +267,7 @@ export const pstakeHostValsetConfigs = {
     },
 
     cosmosTestnet: {
-        smartStakeApiAppName : "",
+        smartStakeApiAppName: "",
         filename: "data_cosmos_testnet.json",
         valconsPrefix: "cosmosvalcons",
         denyListVals: [
@@ -271,7 +315,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     osmosisTestnet: {
-        smartStakeApiAppName : "",
+        smartStakeApiAppName: "",
         filename: "data_osmosis_testnet.json",
         valconsPrefix: "osmovalcons",
         denyListVals: [
@@ -314,7 +358,7 @@ export const pstakeHostValsetConfigs = {
         }
     },
     persistenceTestnet: {
-        smartStakeApiAppName : "",
+        smartStakeApiAppName: "",
         filename: "data_persistence_testnet.json",
         valconsPrefix: "persistencevalcons",
         denyListVals: [
@@ -408,7 +452,15 @@ export const chainInfos = {
         tmVersion: COMETBFT_VERSIONS.comet38,
         pstakeConfig: pstakeHostValsetConfigs.dydx
     },
-
+    stargaze: {
+        rpc: "https://rpc.stargaze-apis.com:443",
+        chainID: "stargaze-1",
+        prefix: "stars",
+        feeDenom: "ustars",
+        gasPrice: GasPrice.fromString("0.04ustars"),
+        tmVersion: COMETBFT_VERSIONS.comet34,
+        pstakeConfig: pstakeHostValsetConfigs.stargaze
+    },
     // TESTNETS
     persistenceTestnet: {
         rpc: "https://rpc.testnet2.persistence.one:443",
