@@ -278,6 +278,8 @@ async function UpdateValsetWeights() {
         return await Fn(chainInfos.persistence, chainInfos.dydx, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
     } else if (HOST_CHAIN === HOST_CHAINS.stargaze) {
         return await Fn(chainInfos.persistence, chainInfos.stargaze, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
+    } else if (HOST_CHAIN === HOST_CHAINS.agoric) {
+        return await Fn(chainInfos.persistence, chainInfos.agoric, addresses.liquidStakeIBC, LIQUIDSTAKEIBC_ADMIN)
     }
 }
 
