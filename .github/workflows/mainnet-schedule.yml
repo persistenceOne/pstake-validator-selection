@@ -7,6 +7,8 @@ on:
     - cron: '05 13 * * *' # post mainnet epoch for cosmoshub
     - cron: '10 13 * * *' # post mainnet epoch for persistence
     - cron: '15 13 * * *' # post mainnet epoch for stargaze
+    - cron: '20 13 * * *' # post mainnet epoch for agoric
+    - cron: '25 13 * * *' # post mainnet epoch for chihuahua
 
 
 env:
