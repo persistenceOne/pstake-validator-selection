@@ -9,6 +9,8 @@ export const HOST_CHAINS = {
     osmosis: "osmosis",
     dydx: "dydx",
     stargaze: "stargaze",
+    agoric: "agoric",
+    chihuahua: "chihuahua",
     persistence: "persistence",
     cosmosTestnet: "cosmosTestnet",
     osmosisTestnet: "osmosisTestnet",
@@ -178,6 +180,92 @@ export const pstakeHostValsetConfigs = {
         smartStakeApiAppName: "STARS",
         filename: "data_stargaze.json",
         valconsPrefix: "starsvalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.20,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 3,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.15
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        }
+    },
+    agoric: {
+        smartStakeApiAppName: "BLD",
+        filename: "data_agoric.json",
+        valconsPrefix: "agoricvalcons",
+        denyListVals: [
+            // {name: "", valAddr: ""},
+        ],
+        commission: {
+            min: 0.05,
+            max: 0.1,
+            weight: 0.25
+        },
+        uptime: {
+            min: 0.95,
+            max: 1,
+            weight: 0.20,
+            lastNDays: 30, //should be 90
+            blocksWindow: 10000,
+        },
+        gov: {
+            lastNDays: 180,
+            min: 0.6,
+            max: 1,
+            weight: 0.4,
+            maxTxPage: 3,
+        },
+        votingPower: {
+            min: 0.0005,
+            max: 0.05,
+            weight: 0.15
+        },
+        blocksMissed: {
+            min: 0,
+            max: 9500,
+        },
+        timeInActiveSet: {
+            lastNDays: 180,
+        },
+        slashingEvents: {
+            lastNDays: 180,
+            max: 0
+        }
+    },
+    chihuahua: {
+        smartStakeApiAppName: "",
+        filename: "data_chihuahua.json",
+        valconsPrefix: "chihuahuavalcons",
         denyListVals: [
             // {name: "", valAddr: ""},
         ],
@@ -417,10 +505,10 @@ export const chainInfos = {
         pstakeConfig: pstakeHostValsetConfigs.persistence
     },
     cosmos: {
-        rpc: "https://r-cosmoshub-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        // rpc: "https://r-cosmoshub-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://r-sub_cosmoshub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://rpc.cosmos.audit.one:443",
-        // rpc: "https://cosmos-rpc.polkachu.com:443",
+        rpc: "https://cosmos-rpc.polkachu.com:443",
         chainID: "cosmoshub-4",
         prefix: "cosmos",
         feeDenom: "uatom",
@@ -429,10 +517,10 @@ export const chainInfos = {
         pstakeConfig: pstakeHostValsetConfigs.cosmos
     },
     osmosis: {
-        rpc: "https://r-osmosis-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        // rpc: "https://r-osmosis-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://r-sub_osmosis--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://rpc.osmosis-1.audit.one:443",
-        // rpc: "https://osmosis-rpc.polkachu.com:443",
+        rpc: "https://osmosis-rpc.polkachu.com:443",
         chainID: "osmosis-1",
         prefix: "osmo",
         feeDenom: "uosmo",
@@ -441,10 +529,10 @@ export const chainInfos = {
         pstakeConfig: pstakeHostValsetConfigs.osmosis
     },
     dydx: {
-        rpc: "https://r-dydx-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
+        // rpc: "https://r-dydx-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://dydx-mainnet-full-rpc.public.blastapi.io:443",
         // rpc: "https://dydx-rpc.kingnodes.com:443",
-        // rpc: "https://dydx-dao-rpc.polkachu.com:443",
+        rpc: "https://dydx-dao-rpc.polkachu.com:443",
         chainID: "dydx-mainnet-1",
         prefix: "dydx",
         feeDenom: "adydx",
@@ -460,6 +548,24 @@ export const chainInfos = {
         gasPrice: GasPrice.fromString("0.04ustars"),
         tmVersion: COMETBFT_VERSIONS.comet34,
         pstakeConfig: pstakeHostValsetConfigs.stargaze
+    },
+    agoric: {
+        rpc: "https://main.rpc.agoric.net:443",
+        chainID: "agoric-3",
+        prefix: "agoric",
+        feeDenom: "ubld",
+        gasPrice: GasPrice.fromString("0.04ubld"),
+        tmVersion: COMETBFT_VERSIONS.comet34,
+        pstakeConfig: pstakeHostValsetConfigs.agoric
+    },
+    chihuahua: {
+        rpc: "https://chihuahua-rpc.polkachu.com:443",
+        chainID: "chihuahua-1",
+        prefix: "chihuahua",
+        feeDenom: "uhuahua",
+        gasPrice: GasPrice.fromString("0.04uhuahua"),
+        tmVersion: COMETBFT_VERSIONS.comet37,
+        pstakeConfig: pstakeHostValsetConfigs.chihuahua
     },
     // TESTNETS
     persistenceTestnet: {
