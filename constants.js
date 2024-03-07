@@ -531,8 +531,8 @@ export const chainInfos = {
     dydx: {
         // rpc: "https://r-dydx-archive-sub--atnqqmfffe9qgz02sjhwcnk35nu4vil6.gw.notionalapi.com:443",
         // rpc: "https://dydx-mainnet-full-rpc.public.blastapi.io:443",
-        // rpc: "https://dydx-rpc.kingnodes.com:443",
-        rpc: "https://dydx-dao-rpc.polkachu.com:443",
+        rpc: "https://dydx-rpc.kingnodes.com:443",
+        // rpc: "https://dydx-dao-rpc.polkachu.com:443",
         chainID: "dydx-mainnet-1",
         prefix: "dydx",
         feeDenom: "adydx",
@@ -559,7 +559,8 @@ export const chainInfos = {
         pstakeConfig: pstakeHostValsetConfigs.agoric
     },
     chihuahua: {
-        rpc: "https://chihuahua-rpc.polkachu.com:443",
+        // rpc: "https://chihuahua-rpc.polkachu.com:443",
+        rpc: "https://rpc.chihuahua.wtf:443",
         chainID: "chihuahua-1",
         prefix: "chihuahua",
         feeDenom: "uhuahua",
