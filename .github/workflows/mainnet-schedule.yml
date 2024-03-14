@@ -137,8 +137,7 @@ jobs:
           HOST_CHAIN: "stargaze"
 
   liquidstakeibc-agoric-valset:
-    #    if: github.event.schedule == '20 13 * * *'
-    if: github.event.schedule == '0 */6 * * *'
+    if: github.event.schedule == '20 13 * * *'
     environment: prod
     runs-on: ubuntu-latest
 
