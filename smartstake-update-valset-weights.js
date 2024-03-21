@@ -243,14 +243,23 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
             nonZeroVals[i].weight = 1 - sum
         }
         sum = sum + nonZeroVals[i].weight
-        kvUpdates.push({
-            key: "validator_weight", value: `${nonZeroVals[i].valoper},${nonZeroVals[i].weight}`
-        })
+        let found = false
+        for (let j = 0; j < kvUpdates.length; j++) {
+            if (kvUpdates[j].key === "validator_weight" && kvUpdates[j].value === `${nonZeroVals[i].valoper},0`) {
+                kvUpdates[j].value = `${nonZeroVals[i].valoper},${nonZeroVals[i].weight}`
+                found = true
+            }
+        }
+        if (!found) {
+            kvUpdates.push({
+                key: "validator_weight", value: `${nonZeroVals[i].valoper},${nonZeroVals[i].weight}`
+            })
+        }
     }
 
-    if (kvUpdates.length <= hostChain.hostChain.validators.length) {
-        console.log("no kv updates, total kv updates:", kvUpdates.length)
-        return
+    if (kvUpdates.length === 0 || sum !== 1) {
+        console.error(`no kv updates, total kv updates:${kvUpdates.length}, sum ${sum}`)
+        throw "No valset update"
     } else {
         console.log("total kv updates:", kvUpdates.length)
     }
