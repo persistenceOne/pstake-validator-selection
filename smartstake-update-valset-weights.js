@@ -25,7 +25,15 @@ import {BondStatus, bondStatusToJSON} from "cosmjs-types/cosmos/staking/v1beta1/
 async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
     const [persistenceTMClient, persistenceRpcClient] = await RpcClient(persistenceChainInfo)
     const pstakeQueryClient = new PstakeQuery(persistenceRpcClient)
-    let hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
+
+    // try for querying hostchain, if not found default with lsm false, for finding validator set
+    let hostChain = {hostChain: {flags: {lsm: false}}}
+    try {
+        hostChain = await pstakeQueryClient.HostChain({chainId: cosmosChainInfo.chainID})
+        console.log("queried host-chain")
+    } catch (e) {
+        console.log("failed to query host-chain with id:", cosmosChainInfo.chainID, "err:", e, "using default hostchain map with lsm disabled.")
+    }
 
     const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
