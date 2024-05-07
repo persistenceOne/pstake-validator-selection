@@ -326,7 +326,7 @@ export const pstakeHostValsetConfigs = {
         },
         gov: {
             lastNDays: 180,
-            min: 0.6,
+            min: 0.9,
             max: 1,
             weight: 0.4,
             maxTxPage: 1,
