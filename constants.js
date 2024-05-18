@@ -513,7 +513,7 @@ export const chainInfos = {
         prefix: "cosmos",
         feeDenom: "uatom",
         gasPrice: GasPrice.fromString("0.005uatom"),
-        tmVersion: COMETBFT_VERSIONS.comet34,
+        tmVersion: COMETBFT_VERSIONS.comet37,
         pstakeConfig: pstakeHostValsetConfigs.cosmos
     },
     osmosis: {
@@ -584,7 +584,7 @@ export const chainInfos = {
         prefix: "cosmos",
         feeDenom: "uatom",
         gasPrice: GasPrice.fromString("0.005uatom"),
-        tmVersion: COMETBFT_VERSIONS.comet34,
+        tmVersion: COMETBFT_VERSIONS.comet37,
         pstakeConfig: pstakeHostValsetConfigs.cosmosTestnet
     },
     osmosisTestnet: {
