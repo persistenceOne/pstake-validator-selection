@@ -8,6 +8,7 @@
     "smartstake-update-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node smartstake-update-valset-weights.js",
     "update-stkxprt-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkxprt-update-valset-weights.js",
     "smartstake-update-valset-weights-xprt": "NODE_OPTIONS='--experimental-specifier-resolution=node' node smartstake-update-valset-weights-xprt.js",
+    "remove-zero-validators": "NODE_OPTIONS='--experimental-specifier-resolution=node' node remove-zero-validators.js",
     "test-run-chain": "NODE_OPTIONS='--experimental-specifier-resolution=node' node test-run-chain.js",
     "print-test": "node print-test.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -28,9 +29,9 @@
   },
   "homepage": "https://github.com/persistenceOne/pstake-validator-selection#readme",
   "dependencies": {
-    "@cosmjs/crypto": "^0.31.1",
-    "@cosmjs/encoding": "^0.31.1",
-    "@cosmjs/proto-signing": "^0.31.1",
+    "@cosmjs/crypto": "^0.32.3",
+    "@cosmjs/encoding": "^0.32.3",
+    "@cosmjs/proto-signing": "^0.32.3",
     "@cosmjs/stargate": "^0.32.3",
     "@cosmjs/tendermint-rpc": "^0.32.3",
     "cosmjs-types": "^0.8.0",
