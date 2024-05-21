@@ -229,7 +229,7 @@ async function TxUpdateValsetWeights(persistenceChainInfo, cosmosChainInfo, gran
 
     const signingPersistenceClient = await CreateSigningClientFromAddress(granteePersistenceAddr)
     const response = await signingPersistenceClient.signAndBroadcast(granteePersistenceAddr.address, [msg], 1.5, "Auto validator update check")
-    console.log(JSON.stringify(response))
+    console.log(stringifyJson(response))
     assertIsDeliverTxSuccess(response)
 }
 
