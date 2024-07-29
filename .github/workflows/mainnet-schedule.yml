@@ -2,13 +2,13 @@ name: Mainnet-Schedule
 
 on:
   schedule:
-    - cron: '55 12 * * *' # post mainnet epoch for osmosis
-    - cron: '00 13 * * *' # post mainnet epoch for dydx
-    - cron: '05 13 * * *' # post mainnet epoch for cosmoshub
+#    - cron: '55 12 * * *' # post mainnet epoch for osmosis
+#    - cron: '00 13 * * *' # post mainnet epoch for dydx
+#    - cron: '05 13 * * *' # post mainnet epoch for cosmoshub
     - cron: '10 13 * * *' # post mainnet epoch for persistence
-    - cron: '15 13 * * *' # post mainnet epoch for stargaze
-    - cron: '20 13 * * *' # post mainnet epoch for agoric
-    - cron: '25 13 * * *' # post mainnet epoch for chihuahua
+#    - cron: '15 13 * * *' # post mainnet epoch for stargaze
+#    - cron: '20 13 * * *' # post mainnet epoch for agoric
+#    - cron: '25 13 * * *' # post mainnet epoch for chihuahua
 
 
 env:
