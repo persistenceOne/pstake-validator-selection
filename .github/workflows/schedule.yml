@@ -3,9 +3,9 @@ name: Schedule
 on:
   schedule:
     #    - cron: '00 12 * * *' # pre mainnet epoch
-    - cron: '00 11 * * *' # post testnet epoch
+#    - cron: '00 11 * * *' # post testnet epoch
     #    - cron: '0 10 * * *' # pre testnet epoch
-    - cron: '0 */6 * * *' # every 6 hours
+#    - cron: '0 */6 * * *' # every 6 hours
 
 env:
   SMARTSTAKE_ACCESS_KEY: ${{ secrets.SMARTSTAKE_ACCESS_KEY }}
