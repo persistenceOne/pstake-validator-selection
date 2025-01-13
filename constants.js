@@ -25,7 +25,7 @@ export const MNEMONIC = process.env.MNEMONIC
 export const FN = process.env.FN
 export const HOST_CHAIN = process.env.HOST_CHAIN
 export const SMARTSTAKE_ACCESS_KEY = process.env.SMARTSTAKE_ACCESS_KEY
-export const LIQUIDSTAKEIBC_ADMIN = "persistence1ealyadcds02yvsn78he4wntt7tpdqhlhg7y2s6"
+export const LIQUIDSTAKEIBC_ADMIN = "persistence19aagls5gtun7ccva04k7gz2ag60llzkfflhry2"
 export const LIQUIDSTAKEIBC_ADMIN_TESTNET = "persistence18dsfsljczehwd5yem9qq2jcz56dz3shp48j3zj"
 
 export const LIQUIDSTAKE_ADMIN = "persistence1ealyadcds02yvsn78he4wntt7tpdqhlhg7y2s6"
