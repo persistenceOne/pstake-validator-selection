@@ -320,7 +320,7 @@ export const pstakeHostValsetConfigs = {
         uptime: {
             min: 0.95,
             max: 1,
-            weight: 0.15,
+            weight: 0.20,
             lastNDays: 30, //should be 90
             blocksWindow: 10000,
         },
@@ -334,7 +334,7 @@ export const pstakeHostValsetConfigs = {
         votingPower: {
             min: 0.0005,
             max: 0.05,
-            weight: 0.1
+            weight: 0.15
         },
         blocksMissed: {
             min: 0,
@@ -346,11 +346,6 @@ export const pstakeHostValsetConfigs = {
         slashingEvents: {
             lastNDays: 180,
             max: 0
-        },
-        validatorBond: {
-            min: 0.001,
-            max: 0.2,
-            weight: 0.1
         }
     },
 
