@@ -31,7 +31,7 @@ import {MsgExec} from "persistenceonejs/cosmos/authz/v1beta1/tx.js";
 import {assertIsDeliverTxSuccess} from "@cosmjs/stargate";
 
 async function GetHostChainValSetData(persistenceChainInfo, cosmosChainInfo) {
-    const lsm = true
+    const lsm = false
 
     const [cosmosTMClient, cosmosRpcClient] = await RpcClient(cosmosChainInfo)
     const cosmosStakingClient = new StakingQuery(cosmosRpcClient)
