@@ -396,7 +396,8 @@ export async function BlockNDaysAgo(queryClient, N) {
 ///////////////// Filter using smartstake api.///////////////////////////
 
 export async function QuerySmartStakeAPI(appName, days) {
-    let URL = `https://7nkwv3z5t1.execute-api.us-east-1.amazonaws.com/prod/valperf?app=${appName}&accessKey=${SMARTSTAKE_ACCESS_KEY}&days=${days}`
+    let URL = `https://ssdata.smartstakeapi.com/common/valperf?app=${appName}&accessKey=${SMARTSTAKE_ACCESS_KEY}&days=${days}`
+    // let URL = `https://7nkwv3z5t1.execute-api.us-east-1.amazonaws.com/prod/valperf?app=${appName}&accessKey=${SMARTSTAKE_ACCESS_KEY}&days=${days}`
     const resp = await fetch(URL)
     const data = await resp.json()
     if (data.length === undefined || data.errors !== undefined) {
