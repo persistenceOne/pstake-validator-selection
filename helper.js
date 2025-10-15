@@ -1,4 +1,4 @@
-import {Tendermint34Client, Tendermint37Client} from "@cosmjs/tendermint-rpc";
+import {Comet38Client, Tendermint34Client, Tendermint37Client} from "@cosmjs/tendermint-rpc";
 import {createProtobufRpcClient, QueryClient, SigningStargateClient} from "@cosmjs/stargate";
 import {decodePubkey, DirectSecp256k1HdWallet, Registry} from "@cosmjs/proto-signing";
 import {defaultRegistryTypes as defaultStargateTypes} from "@cosmjs/stargate/build/signingstargateclient.js";
@@ -7,7 +7,6 @@ import {registry as liquidstakeibcRegistry} from "persistenceonejs/pstake/liquid
 import {registry as lscosmosRegistry} from "persistenceonejs/pstake/lscosmos/v1beta1/msgs.registry.js";
 import {registry as govv1Registry} from "persistenceonejs/cosmos/gov/v1/tx.registry.js";
 import {COMETBFT_VERSIONS, MNEMONIC} from "./constants.js";
-import {Long} from "cosmjs-types/helpers";
 import {fromBase64, fromBech32, toBech32} from "@cosmjs/encoding";
 import {sha256} from "@cosmjs/crypto";
 import {buildQuery} from "@cosmjs/tendermint-rpc/build/tendermint34/requests.js";
@@ -23,7 +22,7 @@ export async function RpcClient(chainInfo) {
         case COMETBFT_VERSIONS.comet37:
             tendermintClient = await Tendermint37Client.connect(chainInfo.rpc);
         case COMETBFT_VERSIONS.comet38:
-            tendermintClient = await Tendermint37Client.connect(chainInfo.rpc);
+            tendermintClient = await Comet38Client.connect(chainInfo.rpc);
     }
     const queryClient = new QueryClient(tendermintClient);
     return [tendermintClient, createProtobufRpcClient(queryClient)];
@@ -61,8 +60,8 @@ export async function AllPaginatedQuery(queryFunc, queryArgs, aggregationKey) {
     do {
         queryArgs.pagination = {
             key: key,
-            offset: Long.fromNumber(0, true),
-            limit: Long.fromNumber(0, true),
+            offset: BigInt(0),
+            limit: BigInt(0),
             countTotal: true
         }
         const response = await queryFunc(queryArgs)
