@@ -3,7 +3,6 @@ name: Mainnet-Schedule
 on:
   schedule:
     - cron: '10 13 * * *' # post mainnet epoch for persistence
-    - cron: '*/5 * * * *' # test
 
 
 env:
@@ -12,7 +11,7 @@ env:
 
 jobs:
   liquidstake-persistence-valset:
-    if: github.event.schedule == '*/5 * * * *'
+    if: github.event.schedule == '10 13 * * *'
     environment: prod
     runs-on: ubuntu-latest
 
