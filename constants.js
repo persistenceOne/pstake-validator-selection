@@ -496,7 +496,7 @@ export const chainInfos = {
         prefix: "persistence",
         feeDenom: "uxprt",
         gasPrice: GasPrice.fromString("0.005uxprt"),
-        tmVersion: COMETBFT_VERSIONS.comet37,
+        tmVersion: COMETBFT_VERSIONS.comet38,
         pstakeConfig: pstakeHostValsetConfigs.persistence
     },
     cosmos: {
@@ -569,7 +569,7 @@ export const chainInfos = {
         chainID: "test-core-2",
         prefix: "persistence",
         feeDenom: "uxprt",
-        tmVersion: COMETBFT_VERSIONS.comet37,
+        tmVersion: COMETBFT_VERSIONS.comet38,
         gasPrice: GasPrice.fromString("0.005uxprt"),
         pstakeConfig: pstakeHostValsetConfigs.persistenceTestnet
     },

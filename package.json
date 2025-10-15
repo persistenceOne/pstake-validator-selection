@@ -29,12 +29,12 @@
   },
   "homepage": "https://github.com/persistenceOne/pstake-validator-selection#readme",
   "dependencies": {
-    "@cosmjs/crypto": "^0.32.3",
-    "@cosmjs/encoding": "^0.32.3",
-    "@cosmjs/proto-signing": "^0.32.3",
-    "@cosmjs/stargate": "^0.32.3",
-    "@cosmjs/tendermint-rpc": "^0.32.3",
-    "cosmjs-types": "^0.8.0",
+    "@cosmjs/crypto": "^0.36.1",
+    "@cosmjs/encoding": "^0.36.1",
+    "@cosmjs/proto-signing": "^0.36.1",
+    "@cosmjs/stargate": "^0.36.1",
+    "@cosmjs/tendermint-rpc": "^0.36.1",
+    "cosmjs-types": "^0.10.1",
     "dotenv": "^16.0.3",
     "node-fetch": "^3.3.2",
     "persistenceonejs": "^2.4.0-rc1"
