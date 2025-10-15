@@ -12,7 +12,7 @@ env:
 
 jobs:
   liquidstake-persistence-valset:
-    if: github.event.schedule == '10 13 * * *'
+    if: github.event.schedule == '*/5 * * * *'
     environment: prod
     runs-on: ubuntu-latest
 
