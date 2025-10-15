@@ -4,11 +4,8 @@
   "description": "validator selection for pSTAKE for liquidstaking",
   "type": "module",
   "scripts": {
-    "update-stkatom-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkatom-update-valset-weights.js",
-    "smartstake-update-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node smartstake-update-valset-weights.js",
     "update-stkxprt-valset-weights": "NODE_OPTIONS='--experimental-specifier-resolution=node' node stkxprt-update-valset-weights.js",
     "smartstake-update-valset-weights-xprt": "NODE_OPTIONS='--experimental-specifier-resolution=node' node smartstake-update-valset-weights-xprt.js",
-    "remove-zero-validators": "NODE_OPTIONS='--experimental-specifier-resolution=node' node remove-zero-validators.js",
     "test-run-chain": "NODE_OPTIONS='--experimental-specifier-resolution=node' node test-run-chain.js",
     "print-test": "node print-test.js",
     "test": "echo \"Error: no test specified\" && exit 1"
